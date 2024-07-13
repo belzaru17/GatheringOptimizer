@@ -28,7 +28,7 @@ internal record ActionsList(ImmutableArray<IAction> Actions) : IAction
         var adjGatheringChance = Math.Min(p.GatheringChance + GatheringBonus, 1.0);
         var adjGatherersBoonChance = Math.Min(p.GatherersBoonChance + GatherersBoonBonus, 1.0);
         var adjGatherersBoonItems = 1 + GatherersBoonExtraItems;
-        var adjAttemptItems = Math.Min(p.AttemptItems + AttemptExtraItems, 1);
+        var adjAttemptItems = p.AttemptItems + AttemptExtraItems;
 
         var minItems = (adjGatheringChance < 1.0) ? 0 : Calculate(p, adjAttempts, adjAttemptItems);
         var avgItems = adjGatheringChance * Calculate(p, adjAttempts + ExtraAttemptsProcs/2.0, adjAttemptItems + adjGatherersBoonChance * adjGatherersBoonItems);

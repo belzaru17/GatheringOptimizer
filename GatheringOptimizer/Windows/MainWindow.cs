@@ -15,7 +15,7 @@ public class MainWindow : Window, IDisposable
     {
         maxGP = plugin.Configuration.MaxGP;
         SizeConstraints = new() {
-            MinimumSize = new Vector2(1000, 400),
+            MinimumSize = new Vector2(450, 600),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue),
         };
     }
@@ -28,37 +28,85 @@ public class MainWindow : Window, IDisposable
     public override void Draw()
     {
         bool changed = false;
+        ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Max GP", ref maxGP);
+        ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Attempts", ref attempts);
+        ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Attempt Items", ref attemptItems);
+        ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Gathering Chance", ref gatheringChance);
+        ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Gatherer's Boon Chance", ref gathererBoonChance);
+        ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Bountiful Yield items", ref bountifulYieldItems);
+        ImGui.SetNextItemWidth(100);
+        ImGui.Spacing();
+        ImGui.Separator();
 
-        if (changed)
+        if (changed || results == null)
         {
-            result = null;
+            results = Optimizer.GenerateResults(GetParameters());
+            lastSortColumn = -1;
         }
-        if (ImGui.Button("Min"))
+
+        if (results != null)
         {
-            result = Optimizer.GenerateResults(GetParameters()).MaxBy(x => x.Min);
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Avg"))
-        {
-            result = Optimizer.GenerateResults(GetParameters()).MaxBy(x => x.Avg);
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Max"))
-        {
-            result = Optimizer.GenerateResults(GetParameters()).MaxBy(x => x.Max);
-        }
-        if (result != null)
-        {
-            ImGui.Text($"GP: {result.GP,4:N0} Min: {result.Min,5:N2} Avg: {result.Avg} Max: {result.Avg,5:N2}");
-            foreach (var action in result.ActionsList.Actions)
+            if (ImGui.BeginTable("Results", 5, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Sortable))
             {
-                ImGui.Text(action.Name);
+                ImGui.TableSetupColumn("GP", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 30);
+                ImGui.TableSetupColumn("Min", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 40);
+                ImGui.TableSetupColumn("Avg", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 40);
+                ImGui.TableSetupColumn("Max", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 40);
+                ImGui.TableSetupColumn("Actions");
+                ImGui.TableHeadersRow();
+
+                var sortSpecs = ImGui.TableGetSortSpecs();
+                if (sortSpecs.SpecsCount > 0)
+                {
+                    var sortOrder = sortSpecs.Specs;
+                    if (sortOrder.ColumnIndex != lastSortColumn || sortOrder.SortDirection != lastSortDirection)
+                    {
+                        if (sortOrder.ColumnIndex == 0)
+                        {
+                            results = results.OrderByDescending(x => x.GP);
+                        }
+                        else if (sortOrder.ColumnIndex == 1)
+                        {
+                            results = results.OrderByDescending(x => x.Min);
+                        }
+                        else if (sortOrder.ColumnIndex == 2)
+                        {
+                            results = results.OrderByDescending(x => x.Avg);
+                        }
+                        else if (sortOrder.ColumnIndex == 3)
+                        {
+                            results = results.OrderByDescending(x => x.Max);
+                        }
+                        if (sortOrder.SortDirection == ImGuiSortDirection.Ascending)
+                        {
+                            results = results.Reverse();
+                        }
+                        lastSortColumn = sortOrder.ColumnIndex;
+                        lastSortDirection = sortOrder.SortDirection;
+                    }
+                }
+
+                foreach (var result in results)
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.Text($"{result.GP,4:N0}");
+                    ImGui.TableNextColumn();
+                    ImGui.Text($"{result.Min,5:N2}");
+                    ImGui.TableNextColumn();
+                    ImGui.Text($"{result.Avg,5:N2}");
+                    ImGui.TableNextColumn();
+                    ImGui.Text($"{result.Max,5:N2}");
+                    ImGui.TableNextColumn();
+                    DrawResult(result);
+                }
+                ImGui.EndTable();
             }
         }
     }
@@ -68,13 +116,25 @@ public class MainWindow : Window, IDisposable
         return new GatheringParameters(maxGP, attempts, gatheringChance / 100.0, gathererBoonChance / 100.0, attemptItems, bountifulYieldItems);
     }
 
+    private static void DrawResult(GatheringResult result)
+    {
+        ImGui.Text("");
+        foreach (var action in result.ActionsList.Actions)
+        {
+            ImGui.SameLine();
+            ImGui.Text($" {action.Name}");
+        }
+
+    }
 
     private int maxGP;
-    private int attempts = 4;
+    private int attempts = 6;
     private int attemptItems = 1;
     private int gatheringChance = 100;
-    private int gathererBoonChance = 0;
+    private int gathererBoonChance = 26;
     private int bountifulYieldItems = 1;
 
-    private GatheringResult? result = null;
+    private IEnumerable<GatheringResult>? results = null;
+    private short lastSortColumn = -1;
+    private ImGuiSortDirection lastSortDirection = ImGuiSortDirection.Descending;
 }

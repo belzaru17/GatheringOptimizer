@@ -32,10 +32,11 @@ internal static class Optimizer
             return GenerateTailActions(maxGP, actions);
         }
 
-        res.AddRange(RecursiveGenerateActionLists(maxGP, oneOfActions.Slice(1, oneOfActions.Count), actions));
+        var nextOneOfActions = (oneOfActions.Count > 1) ? oneOfActions.Slice(1, oneOfActions.Count - 1) : [];
+        res.AddRange(RecursiveGenerateActionLists(maxGP, nextOneOfActions, actions));
         for (int i = 0; i < oneOfActions[0].Count; i++)
         {
-            res.AddRange(RecursiveGenerateActionLists(maxGP, oneOfActions.Slice(1, oneOfActions.Count), new ActionsList(actions.Actions.Add(oneOfActions[0][i]))));
+            res.AddRange(RecursiveGenerateActionLists(maxGP, nextOneOfActions, new ActionsList(actions.Actions.Add(oneOfActions[0][i]))));
         }
 
         return res;
@@ -43,19 +44,24 @@ internal static class Optimizer
 
     private static List<ActionsList> GenerateTailActions(int maxGP, ActionsList actions)
     {
+        if (actions.GP > maxGP)
+        {
+            return [];
+        }
+
         List<ActionsList> s1res = [actions];
         for (int i = 1; i <= (maxGP - actions.GP) / SolidReason.Instance.GP; i++)
         {
-            s1res.Add(new ActionsList(actions.Actions.Add(SolidReason.Instance)));
+            s1res.Add(new ActionsList(s1res[i-1].Actions.Add(SolidReason.Instance)));
         }
 
         List<ActionsList> res = [];
         for (int i = 0; i < s1res.Count; i++)
         {
             res.Add(s1res[i]);
-            for (int j = 1; j <= (maxGP - s1res[i].GP) / BountifulYield.Instance.GP; j++)
+            for (int j = 1; j <= (maxGP - res[j-1].GP) / BountifulYield.Instance.GP; j++)
             {
-                res.Add(new ActionsList(s1res[i].Actions.Add(BountifulYield.Instance)));
+                res.Add(new ActionsList(res[j-1].Actions.Add(BountifulYield.Instance)));
             }
         }
 
