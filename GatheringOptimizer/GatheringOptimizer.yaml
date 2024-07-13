@@ -1,0 +1,9 @@
+name: Gathering Optimizer
+author: HappySprite
+description: Use /go to open UI.
+punchline: Optimize gathering of BOT and MIN nodes.
+repo_url: https://github.com/belzaru17/GatheringOptimizer
+icon_url: https://raw.githubusercontent.com/belzaru17/GatheringOptimizer/main/Images/icon.png
+tags:
+  - gathering
+  - optimizer
