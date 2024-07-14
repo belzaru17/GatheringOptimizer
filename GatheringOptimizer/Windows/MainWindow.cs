@@ -22,7 +22,7 @@ public class MainWindow : Window, IDisposable
     {
         this.plugin = plugin;
 
-        maxGP = plugin.Configuration.MaxGP;
+        currentGP = plugin.Configuration.MaxGP;
         SizeConstraints = new() {
             MinimumSize = new Vector2(450, 600),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue),
@@ -39,26 +39,29 @@ public class MainWindow : Window, IDisposable
 
         bool changed = false;
 
-        if (autoMaxGP)
+        if (autoCurrentGP)
         {
-            if (Plugin.ClientState.LocalPlayer != null)
+            int newMaxGP = ((int?)Plugin.ClientState.LocalPlayer?.CurrentGp) ?? currentGP;
+            if ((Plugin.ClientState.LocalPlayer != null) && (newMaxGP!= currentGP))
             {
-                maxGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
+                changed = true;
+                currentGP = newMaxGP;
             }
-            ImGui.Text($"{maxGP} Max GP");
+            ImGui.Text($"{currentGP} Max GP");
         }
         else
         {
             ImGui.SetNextItemWidth(100);
-            changed |= ImGui.InputInt("Max GP", ref maxGP);
+            changed |= ImGui.InputInt("Max GP", ref currentGP);
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(170);
-        if (ImGui.Checkbox("Auto Max GP", ref autoMaxGP))
+        if (ImGui.Checkbox("Auto Max GP", ref autoCurrentGP))
         {
-            if (!autoMaxGP)
+            changed = true;
+            if (!autoCurrentGP)
             {
-                maxGP = plugin.Configuration.MaxGP;
+                currentGP = plugin.Configuration.MaxGP;
             }
         }
 
@@ -113,7 +116,7 @@ public class MainWindow : Window, IDisposable
 
     private GatheringParameters GetParameters()
     {
-        return new GatheringParameters(maxGP, attempts, gatheringChance / 100.0, gathererBoonChance / 100.0, attemptItems, bountifulYieldItems);
+        return new GatheringParameters(currentGP, attempts, gatheringChance / 100.0, gathererBoonChance / 100.0, attemptItems, bountifulYieldItems);
     }
 
     private static bool IsBotanist()
@@ -223,13 +226,13 @@ public class MainWindow : Window, IDisposable
 
     private readonly Plugin plugin;
 
-    private bool autoMaxGP = true;
-    private int maxGP;
+    private bool autoCurrentGP = true;
+    private int currentGP;
     private int attempts = 6;
     private int attemptItems = 1;
     private int gatheringChance = 100;
-    private int gathererBoonChance = 26;
-    private int bountifulYieldItems = 1;
+    private int gathererBoonChance = 30;
+    private int bountifulYieldItems = 2;
 
     private IEnumerable<GatheringResult>? results = null;
     private SortColumn sortColumn = SortColumn.SORT_AVG;
