@@ -5,6 +5,8 @@ VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GatheringOptimizer", "GatheringOptimizer\GatheringOptimizer.csproj", "{1D767598-B27B-4BDA-B1F7-ED2DFABA2DA7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GatheringOptimizer.Tests", "GatheringOptimizer.Tests\GatheringOptimizer.Tests.csproj", "{498D1CA4-8773-4B2B-BAFD-89CB1DEB5B9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{1D767598-B27B-4BDA-B1F7-ED2DFABA2DA7}.Debug|x64.Build.0 = Debug|x64
 		{1D767598-B27B-4BDA-B1F7-ED2DFABA2DA7}.Release|x64.ActiveCfg = Release|x64
 		{1D767598-B27B-4BDA-B1F7-ED2DFABA2DA7}.Release|x64.Build.0 = Release|x64
+		{498D1CA4-8773-4B2B-BAFD-89CB1DEB5B9A}.Debug|x64.ActiveCfg = Debug|x64
+		{498D1CA4-8773-4B2B-BAFD-89CB1DEB5B9A}.Debug|x64.Build.0 = Debug|x64
+		{498D1CA4-8773-4B2B-BAFD-89CB1DEB5B9A}.Release|x64.ActiveCfg = Release|x64
+		{498D1CA4-8773-4B2B-BAFD-89CB1DEB5B9A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,179 +2,310 @@
 
 namespace GatheringOptimizer.Algorithm;
 
-internal abstract class BaseAction : IAction
+internal sealed class GatherAction : IAction
+{
+    public string Name_MINER => "Gather";
+    public string Name_BOTANIST => "Gather";
+
+    public int GP => 0;
+
+    public bool CanExecute(GatheringState state) => true;
+
+    public ActionResult Execute(GatheringState state)
+    {
+        return state.Gather();
+    }
+
+    public static GatherAction Instance => instance.Value;
+
+    private static readonly Lazy<GatherAction> instance = new(() => new GatherAction());
+
+    private GatherAction() { }
+}
+
+internal abstract class BaseBuffAction : IAction
 {
     public abstract string Name_MINER { get; }
     public abstract string Name_BOTANIST { get; }
 
     public abstract int GP { get; }
 
-    public virtual double GatheringBonus => 0;
+    public virtual bool CanExecute(GatheringState state)
+    {
+        return state.CurrentGP >= GP;
+    }
 
-    public virtual double GatherersBoonBonus => 0;
-    public virtual int GatherersBoonExtraItems => 0;
+    public ActionResult Execute(GatheringState state)
+    {
+        return new ActionResult(0, 0.0, 0, ExecuteBuff(state));
+    }
 
-    public virtual int ExtraAttempts => 0;
-    public virtual int ExtraAttemptsProcs => 0;
-
-    public virtual int AttemptExtraItems => 0;
-
-    public virtual int ExtraBountifulYieldCount => 0;
+    protected abstract GatheringState ExecuteBuff(GatheringState state);
 }
 
-internal sealed class IncreaseGatheringChance : BaseAction
+internal sealed class IncreaseGatheringChanceAction : BaseBuffAction
 {
     public override string Name_MINER => "Sharp Vision";
     public override string Name_BOTANIST => "Field Mastery";
     public override int GP => 50;
-    public override double GatheringBonus => 0.05;
 
-    public static IncreaseGatheringChance Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        // FIXME: override buffs
+        return base.CanExecute(state) && state.GatheringChance < 1.0 && 
+            !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
+    }
 
-    private static readonly Lazy<IncreaseGatheringChance> instance = new(() => new IncreaseGatheringChance());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedGatheringChanceBuff.Instance, GP);
+    }
 
-    private IncreaseGatheringChance() { }
+    public static IncreaseGatheringChanceAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseGatheringChanceAction> instance = new(() => new IncreaseGatheringChanceAction());
+
+    private IncreaseGatheringChanceAction() { }
 }
 
-internal sealed class IncreaseGatheringChanceII : BaseAction
+internal sealed class IncreaseGatheringChanceIIAction : BaseBuffAction
 {
     public override string Name_MINER => "Sharp Vision II";
     public override string Name_BOTANIST => "Field Mastery II";
     public override int GP => 100;
-    public override double GatheringBonus => 0.10;
 
-    public static IncreaseGatheringChanceII Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        // FIXME: override buffs
+        return base.CanExecute(state) && state.GatheringChance < 1.0 &&
+            !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
+    }
 
-    private static readonly Lazy<IncreaseGatheringChanceII> instance = new(() => new IncreaseGatheringChanceII());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedGatheringChanceIIBuff.Instance, GP);
+    }
 
-    private IncreaseGatheringChanceII() { }
+    public static IncreaseGatheringChanceIIAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseGatheringChanceIIAction> instance = new(() => new IncreaseGatheringChanceIIAction());
+
+    private IncreaseGatheringChanceIIAction() { }
 }
 
-internal sealed class IncreaseGatheringChanceIII : BaseAction
+internal sealed class IncreaseGatheringChanceIIIAction : BaseBuffAction
 {
     public override string Name_MINER => "Sharp Vision III";
     public override string Name_BOTANIST => "Field Mastery III";
     public override int GP => 250;
-    public override double GatheringBonus => 0.50;
 
-    public static IncreaseGatheringChanceIII Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        // FIXME: override buffs
+        return base.CanExecute(state) && state.GatheringChance < 1.0 &&
+            !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
+    }
 
-    private static readonly Lazy<IncreaseGatheringChanceIII> instance = new(() => new IncreaseGatheringChanceIII());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedGatheringChanceIIIBuff.Instance, GP);
+    }
 
-    private IncreaseGatheringChanceIII() { }
+    public static IncreaseGatheringChanceIIIAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseGatheringChanceIIIAction> instance = new(() => new IncreaseGatheringChanceIIIAction());
+
+    private IncreaseGatheringChanceIIIAction() { }
 }
 
-internal sealed class IncreaseBoonChanceI : BaseAction
+internal sealed class IncreaseBoonChanceIAction : BaseBuffAction
 {
     public override string Name_MINER => "Mountaineer's Gift I";
     public override string Name_BOTANIST => "Pioneer's Gift I";
     public override int GP => 50;
-    public override double GatherersBoonBonus => 0.10;
 
-    public static IncreaseBoonChanceI Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && state.GatherersBoonChance < 1.0 &&
+            !state.Buffs.Contains(IncreasedBoonChanceIBuff.Instance);
+    }
 
-    private static readonly Lazy<IncreaseBoonChanceI> instance = new(() => new IncreaseBoonChanceI());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedBoonChanceIBuff.Instance, GP);
+    }
 
-    private IncreaseBoonChanceI() { }
+    public static IncreaseBoonChanceIAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseBoonChanceIAction> instance = new(() => new IncreaseBoonChanceIAction());
+
+    private IncreaseBoonChanceIAction() { }
 }
 
-internal sealed class IncreaseBoonChanceII : BaseAction
+internal sealed class IncreaseBoonChanceIIAction : BaseBuffAction
 {
     public override string Name_MINER => "Mountaineer's Gift II";
     public override string Name_BOTANIST => "Pioneer's Gift II";
     public override int GP => 100;
-    public override double GatheringBonus => 0.30;
 
-    public static IncreaseBoonChanceII Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && state.GatherersBoonChance < 1.0 &&
+            !state.Buffs.Contains(IncreasedBoonChanceIIBuff.Instance);
+    }
 
-    private static readonly Lazy<IncreaseBoonChanceII> instance = new(() => new IncreaseBoonChanceII());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedBoonChanceIIBuff.Instance, GP);
+    }
 
-    private IncreaseBoonChanceII() { }
+    public static IncreaseBoonChanceIIAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseBoonChanceIIAction> instance = new(() => new IncreaseBoonChanceIIAction());
+
+    private IncreaseBoonChanceIIAction() { }
 }
 
-internal sealed class IncreaseBoonChanceBoth : BaseAction
-{
-    public override string Name_MINER => "Mountaineer's Gift I + Mountaineer's Gift II";
-    public override string Name_BOTANIST => "Pioneer's Gift I + Pioneer's Gift II";
-    public override int GP => 150;
-    public override double GatheringBonus => 0.40;
-
-    public static IncreaseBoonChanceBoth Instance => instance.Value;
-
-    private static readonly Lazy<IncreaseBoonChanceBoth> instance = new(() => new IncreaseBoonChanceBoth());
-
-    private IncreaseBoonChanceBoth() { }
-}
-
-internal sealed class IncreaseBoonItems : BaseAction
+internal sealed class IncreaseBoonItemsAction : BaseBuffAction
 {
     public override string Name_MINER => "Nald'thal's Tidings";
     public override string Name_BOTANIST => "Nophica's Tidings";
     public override int GP => 200;
-    public override int GatherersBoonExtraItems => 1;
 
-    public static IncreaseBoonItems Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && !state.Buffs.Contains(IncreasedBoonItemsBuff.Instance);
+    }
 
-    private static readonly Lazy<IncreaseBoonItems> instance = new(() => new IncreaseBoonItems());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedBoonItemsBuff.Instance, GP);
+    }
 
-    private IncreaseBoonItems() { }
+    public static IncreaseBoonItemsAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseBoonItemsAction> instance = new(() => new IncreaseBoonItemsAction());
+
+    private IncreaseBoonItemsAction() { }
 }
 
-internal sealed class IncreaseAttemptItems : BaseAction
+internal sealed class IncreaseAttemptItemsAction : BaseBuffAction
 {
     public override string Name_MINER => "Kings Yield";
     public override string Name_BOTANIST => "Blessed Harvest";
     public override int GP => 400;
-    public override int AttemptExtraItems => 1;
 
-    public static IncreaseAttemptItems Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        // FIXME: override buffs
+        return base.CanExecute(state) &&
+            !(state.Buffs.Contains(IncreasedAttemptItemsBuff.Instance) || state.Buffs.Contains(IncreasedAttemptItemsIIBuff.Instance));
+    }
 
-    private static readonly Lazy<IncreaseAttemptItems> instance = new(() => new IncreaseAttemptItems());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedAttemptItemsBuff.Instance, GP);
+    }
 
-    private IncreaseAttemptItems() { }
+    public static IncreaseAttemptItemsAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseAttemptItemsAction> instance = new(() => new IncreaseAttemptItemsAction());
+
+    private IncreaseAttemptItemsAction() { }
 }
 
-internal sealed class IncreaseAttemptItemsII : BaseAction
+internal sealed class IncreaseAttemptItemsIIAction : BaseBuffAction
 {
     public override string Name_MINER => "Kings Yield II";
     public override string Name_BOTANIST => "Blessed Harvest II";
     public override int GP => 500;
-    public override int AttemptExtraItems => 2;
 
-    public static IncreaseAttemptItemsII Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        // FIXME: override buffs
+        return base.CanExecute(state) &&
+            !(state.Buffs.Contains(IncreasedAttemptItemsBuff.Instance) || state.Buffs.Contains(IncreasedAttemptItemsIIBuff.Instance));
+    }
 
-    private static readonly Lazy<IncreaseAttemptItemsII> instance = new(() => new IncreaseAttemptItemsII());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedAttemptItemsIIBuff.Instance, GP);
+    }
 
-    private IncreaseAttemptItemsII() { }
+    public static IncreaseAttemptItemsIIAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseAttemptItemsIIAction> instance = new(() => new IncreaseAttemptItemsIIAction());
+
+    private IncreaseAttemptItemsIIAction() { }
 }
 
-internal sealed class IncreaseAttempts : BaseAction
+internal sealed class IncreaseAttemptsAction : BaseBuffAction
 {
     public override string Name_MINER => "Solid Reason";
     public override string Name_BOTANIST => "Ageless Words";
     public override int GP => 300;
-    public override int ExtraAttempts => 1;
-    public override int ExtraAttemptsProcs => 1;
 
-    public static IncreaseAttempts Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && state.Integrity < state.Parameters.MaxIntegrity && !state.Buffs.Contains(ExtraAttemptProcBuff.Instance);
+    }
 
-    private static readonly Lazy<IncreaseAttempts> instance = new(() => new IncreaseAttempts());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(ExtraAttemptProcBuff.Instance, 0).AddIntegrity(GP);
+    }
 
-    private IncreaseAttempts() { }
+    public static IncreaseAttemptsAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseAttemptsAction> instance = new(() => new IncreaseAttemptsAction());
+
+    private IncreaseAttemptsAction() { }
 }
 
-internal sealed class IncreaseNextAttemptItems : BaseAction
+internal sealed class IncreaseAttemptsProcAction : BaseBuffAction
+{
+    public override string Name_MINER => "Wise to the World";
+    public override string Name_BOTANIST => "Wise to the World";
+    public override int GP => 0;
+
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && state.Integrity < state.Parameters.MaxIntegrity && state.Buffs.Contains(ExtraAttemptProcBuff.Instance);
+    }
+
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddIntegrity(0, ExtraAttemptProcBuff.Instance);
+    }
+
+    public static IncreaseAttemptsProcAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseAttemptsProcAction> instance = new(() => new IncreaseAttemptsProcAction());
+
+    private IncreaseAttemptsProcAction() { }
+}
+
+internal sealed class IncreaseNextAttemptItemsAction : BaseBuffAction
 {
     public override string Name_MINER => "Bountiful Yield";
     public override string Name_BOTANIST => "Bountiful Harvest";
     public override int GP => 100;
-    public override int ExtraBountifulYieldCount => 1;
 
-    public static IncreaseNextAttemptItems Instance => instance.Value;
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && !state.Buffs.Contains(IncreasedNextAttemptItemsBuff.Instance);
+    }
 
-    private static readonly Lazy<IncreaseNextAttemptItems> instance = new(() => new IncreaseNextAttemptItems());
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedNextAttemptItemsBuff.Instance, GP);
+    }
 
-    private IncreaseNextAttemptItems() { }
+    public static IncreaseNextAttemptItemsAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseNextAttemptItemsAction> instance = new(() => new IncreaseNextAttemptItemsAction());
+
+    private IncreaseNextAttemptItemsAction() { }
 }
 
-// Clear Vision / Flora Mastery
+// FIXME: Clear Vision / Flora Mastery

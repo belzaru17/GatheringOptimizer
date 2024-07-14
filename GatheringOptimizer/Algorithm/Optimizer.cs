@@ -1,70 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace GatheringOptimizer.Algorithm;
 
 internal static class Optimizer
 {
-    public static ImmutableArray<GatheringResult> GenerateResults(GatheringParameters p)
+    public static ImmutableArray<GatheringResult> GenerateResults(GatheringParameters parameters, int currentGP)
     {
-        return [.. GenerateActionLists(p.MaxGP).Select(x => x.Result(p)).Where(x => x.GP <= p.MaxGP)];
+        var initialState = new GatheringState(parameters, currentGP);
+        var initialResult = new GatheringResult(0, 0.0, 0, [], initialState);
+
+        return [.. RecursiveGenerateActionLists(parameters, initialResult, POSSIBLE_BUFF_ACTIONS)];
     }
 
+    private static List<IAction> POSSIBLE_BUFF_ACTIONS = [
+        IncreaseGatheringChanceAction.Instance,
+        IncreaseGatheringChanceIIAction.Instance,
+        IncreaseGatheringChanceIIIAction.Instance,
+        IncreaseBoonChanceIAction.Instance,
+        IncreaseBoonChanceIIAction.Instance,
+        IncreaseBoonItemsAction.Instance,
+        IncreaseAttemptItemsAction.Instance,
+        IncreaseAttemptItemsIIAction.Instance,
+        IncreaseAttemptsAction.Instance,
+        // IncreaseAttemptsProcAction.Instance,
+        IncreaseNextAttemptItemsAction.Instance,
+    ];
 
-    private static ImmutableArray<ActionsList> GenerateActionLists(int maxGP)
+    private static List<GatheringResult> RecursiveGenerateActionLists(GatheringParameters parameters, GatheringResult partialResult, List<IAction> possibleActions)
     {
-        List<List<IAction>> oneOfActions = [
-            [IncreaseGatheringChance.Instance, IncreaseGatheringChanceII.Instance, IncreaseGatheringChanceIII.Instance],
-            [IncreaseBoonChanceI.Instance, IncreaseBoonChanceII.Instance, IncreaseBoonChanceBoth.Instance],
-            [IncreaseBoonItems.Instance],
-            [IncreaseAttemptItems.Instance, IncreaseAttemptItemsII.Instance],
-        ];
-        return [.. RecursiveGenerateActionLists(maxGP, oneOfActions, new ActionsList([]))];
-    }
-
-    private static List<ActionsList> RecursiveGenerateActionLists(int maxGP, List<List<IAction>> oneOfActions, ActionsList actions)
-    {
-        List<ActionsList> res = [];
-        if (oneOfActions.Count == 0)
+        if (partialResult.State.Integrity == 0)
         {
-            return GenerateTailActions(maxGP, actions);
+            return [partialResult];
         }
 
-        var nextOneOfActions = (oneOfActions.Count > 1) ? oneOfActions.Slice(1, oneOfActions.Count - 1) : [];
-        res.AddRange(RecursiveGenerateActionLists(maxGP, nextOneOfActions, actions));
-        for (int i = 0; i < oneOfActions[0].Count; i++)
+        var result = new List<GatheringResult>();
+        for (int i = 0; i < possibleActions.Count; i++)
         {
-            res.AddRange(RecursiveGenerateActionLists(maxGP, nextOneOfActions, new ActionsList(actions.Actions.Add(oneOfActions[0][i]))));
-        }
-
-        return res;
-    }
-
-    private static List<ActionsList> GenerateTailActions(int maxGP, ActionsList actions)
-    {
-        if (actions.GP > maxGP)
-        {
-            return [];
-        }
-
-        List<ActionsList> s1res = [actions];
-        for (int i = 1; i <= (maxGP - actions.GP) / IncreaseAttempts.Instance.GP; i++)
-        {
-            s1res.Add(new ActionsList(s1res[i-1].Actions.Add(IncreaseAttempts.Instance)));
-        }
-
-        List<ActionsList> res = [];
-        for (int i = 0; i < s1res.Count; i++)
-        {
-            res.Add(s1res[i]);
-            for (int j = 1; j <= (maxGP - res[j-1].GP) / IncreaseNextAttemptItems.Instance.GP; j++)
+            var action = possibleActions[i];
+            if (action.CanExecute(partialResult.State))
             {
-                res.Add(new ActionsList(res[j-1].Actions.Add(IncreaseNextAttemptItems.Instance)));
+                result.AddRange(RecursiveGenerateActionLists(parameters, partialResult.ExecuteAction(action), possibleActions.Slice(i, possibleActions.Count - i)));
             }
         }
-
-        return res;
+        var gatherAction = GatherAction.Instance;
+        if (gatherAction.CanExecute(partialResult.State))
+        {
+            result.AddRange(RecursiveGenerateActionLists(parameters, partialResult.ExecuteAction(gatherAction), POSSIBLE_BUFF_ACTIONS));
+        }
+        return result;
     }
 }

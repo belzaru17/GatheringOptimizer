@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 
 namespace GatheringOptimizer.Windows;
 
@@ -22,7 +23,7 @@ public class MainWindow : Window, IDisposable
     {
         this.plugin = plugin;
 
-        currentGP = plugin.Configuration.MaxGP;
+        currentGP = maxGP = plugin.Configuration.MaxGP;
         SizeConstraints = new() {
             MinimumSize = new Vector2(450, 600),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue),
@@ -39,29 +40,34 @@ public class MainWindow : Window, IDisposable
 
         bool changed = false;
 
-        if (autoCurrentGP)
+        if (autoGP)
         {
-            int newMaxGP = ((int?)Plugin.ClientState.LocalPlayer?.CurrentGp) ?? currentGP;
-            if ((Plugin.ClientState.LocalPlayer != null) && (newMaxGP!= currentGP))
+            int newMaxGP = ((int?)Plugin.ClientState.LocalPlayer?.MaxGp) ?? maxGP;
+            int newCurrentGP = ((int?)Plugin.ClientState.LocalPlayer?.CurrentGp) ?? currentGP;
+            if ((Plugin.ClientState.LocalPlayer != null) && ((newMaxGP !=  maxGP) || (newCurrentGP != currentGP)))
             {
                 changed = true;
-                currentGP = newMaxGP;
+                maxGP = newMaxGP;
+                currentGP = newCurrentGP;
             }
+            ImGui.Text($"{maxGP} Max GP");
             ImGui.Text($"{currentGP} Max GP");
         }
         else
         {
             ImGui.SetNextItemWidth(100);
-            changed |= ImGui.InputInt("Max GP", ref currentGP);
+            changed |= ImGui.InputInt("Max GP", ref maxGP);
+            ImGui.SetNextItemWidth(100);
+            changed |= ImGui.InputInt("Current GP", ref currentGP);
         }
         ImGui.SameLine();
-        ImGui.SetCursorPosX(170);
-        if (ImGui.Checkbox("Auto Max GP", ref autoCurrentGP))
+        ImGui.SetCursorPosX(200);
+        if (ImGui.Checkbox("Auto GP", ref autoGP))
         {
             changed = true;
-            if (!autoCurrentGP)
+            if (!autoGP)
             {
-                currentGP = plugin.Configuration.MaxGP;
+                currentGP = maxGP = plugin.Configuration.MaxGP;
             }
         }
 
@@ -79,10 +85,27 @@ public class MainWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.Separator();
 
-        if (changed || results == null)
+        if (changed)
         {
-            results = Optimizer.GenerateResults(GetParameters());
-            SortResults();
+            results = null;
+            calculatePending = true;
+        }
+        if (!(calculateThread?.IsAlive ?? true))
+        {
+            calculateThread = null;
+        }
+        if (calculatePending && results != null)
+        {
+            results = null;
+        }
+        if (results == null && calculateThread == null)
+        {
+            calculatePending = false;
+            calculateThread = new Thread(() =>
+            {
+                results = SortResults(Optimizer.GenerateResults(GetParameters(), currentGP));
+            });
+            calculateThread.Start();
         }
 
         int newSortColumn = (int)sortColumn;
@@ -95,7 +118,10 @@ public class MainWindow : Window, IDisposable
         if (sortChanged)
         {
             sortColumn = (SortColumn)newSortColumn;
-            SortResults();
+            if (results != null)
+            {
+                results = SortResults(results);
+            }
         }
         ImGui.SameLine();
         ImGui.Checkbox("Debug View", ref debugView);
@@ -111,6 +137,10 @@ public class MainWindow : Window, IDisposable
             {
                 DrawTopResult(results.First());
             }
+        }
+        else
+        {
+            ImGui.Text("Calculating...");
         }
     }
 
@@ -129,13 +159,13 @@ public class MainWindow : Window, IDisposable
         if (ImGui.BeginChild("Result"))
         {
             ImGui.Columns(2);
-            ImGui.Text($"GP:  {result.GP,4:N0}");
+            ImGui.Text($"GP:  {result.State.UsedGP,4:N0}");
             ImGui.Text($"Min: {result.Min,5:N2}"); ImGui.SameLine();
             ImGui.Text($"Avg: {result.Avg,5:N2}"); ImGui.SameLine();
             ImGui.Text($"Max: {result.Max,5:N2}");
             ImGui.NextColumn();
             ImGui.Text("Actions");
-            foreach (var action in result.ActionsList.Actions)
+            foreach (var action in result.Actions)
             {
                 if (IsBotanist()) {
                     ImGui.Text($" {action.Name_BOTANIST}");
@@ -164,7 +194,7 @@ public class MainWindow : Window, IDisposable
             {
                 ImGui.TableNextRow();
                 ImGui.TableSetColumnIndex(0);
-                ImGui.Text($"{result.GP,4:N0}");
+                ImGui.Text($"{result.State.UsedGP,4:N0}");
                 ImGui.TableNextColumn();
                 ImGui.Text($"{result.Min,5:N2}");
                 ImGui.TableNextColumn();
@@ -173,7 +203,7 @@ public class MainWindow : Window, IDisposable
                 ImGui.Text($"{result.Max,5:N2}");
                 ImGui.TableNextColumn();
                 ImGui.Text("");
-                foreach (var action in result.ActionsList.Actions)
+                foreach (var action in result.Actions)
                 {
                     ImGui.SameLine();
                     if (botanist)
@@ -190,43 +220,37 @@ public class MainWindow : Window, IDisposable
         }
     }
 
-    private void SortResults()
+    private IEnumerable<GatheringResult> SortResults(IEnumerable<GatheringResult> results)
     {
-        if (results == null)
-        {
-            return;
-        }
         switch (sortColumn)
         {
             case SortColumn.SORT_GP:
                 {
-                    results = results.OrderByDescending(x => (x.GP, x.Avg));
-                    break;
+                    return results.OrderByDescending(x => (x.State.UsedGP, x.Avg));
                 }
 
             case SortColumn.SORT_MIN:
                 {
-                    results = results.OrderByDescending(x => (x.Min, -x.GP));
-                    break;
+                    return results.OrderByDescending(x => (x.Min, -x.State.UsedGP));
                 }
 
             case SortColumn.SORT_AVG:
                 {
-                    results = results.OrderByDescending(x => (x.Avg, -x.GP));
-                    break;
+                    return results.OrderByDescending(x => (x.Avg, -x.State.UsedGP));
                 }
 
             case SortColumn.SORT_MAX:
                 {
-                    results = results.OrderByDescending(x => (x.Max, -x.GP));
-                    break;
+                    return results.OrderByDescending(x => (x.Max, -x.State.UsedGP));
                 }
         }
+        return results;
     }
 
     private readonly Plugin plugin;
 
-    private bool autoCurrentGP = true;
+    private bool autoGP = true;
+    private int maxGP;
     private int currentGP;
     private int attempts = 6;
     private int attemptItems = 1;
@@ -237,4 +261,7 @@ public class MainWindow : Window, IDisposable
     private IEnumerable<GatheringResult>? results = null;
     private SortColumn sortColumn = SortColumn.SORT_AVG;
     private bool debugView = false;
+
+    private bool calculatePending = true;
+    private Thread? calculateThread;
 }

@@ -7,15 +7,7 @@ internal interface IAction
 
     int GP { get; }
 
-    double GatheringBonus { get; }
+    bool CanExecute(GatheringState state);
 
-    double GatherersBoonBonus { get; }
-    int GatherersBoonExtraItems { get; }
-
-    int ExtraAttempts { get; }
-    int ExtraAttemptsProcs { get; }
-
-    int AttemptExtraItems { get; }
-
-    int ExtraBountifulYieldCount { get; }
-}    
+    ActionResult Execute(GatheringState state);
+}

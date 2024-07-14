@@ -12,6 +12,12 @@
     </PropertyGroup>
 
 	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>GatheringOptimizer.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
 		<Content Include="Resources\**" DestinationFolder="Resources\$(RecursiveDir)" CopyToOutputDirectory="Always" />
 	</ItemGroup>
 
