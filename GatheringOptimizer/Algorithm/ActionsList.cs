@@ -6,7 +6,8 @@ namespace GatheringOptimizer.Algorithm;
 
 internal record ActionsList(ImmutableArray<IAction> Actions) : IAction
 {
-    public string Name => "ActionList";
+    public string Name_MINER => "ActionList";
+    public string Name_BOTANIST => "ActionList";
 
     public int GP => Actions.Sum(i => i.GP);
 

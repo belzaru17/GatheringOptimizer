@@ -16,10 +16,10 @@ internal static class Optimizer
     private static ImmutableArray<ActionsList> GenerateActionLists(int maxGP)
     {
         List<List<IAction>> oneOfActions = [
-            [SharpVision.Instance, SharpVisionII.Instance, SharpVisionIII.Instance],
-            [GiftI.Instance, GiftII.Instance, BothGifts.Instance],
-            [NaldThalsTidings.Instance],
-            [KingsYield.Instance, KingsYieldII.Instance],
+            [IncreaseGatheringChance.Instance, IncreaseGatheringChanceII.Instance, IncreaseGatheringChanceIII.Instance],
+            [IncreaseBoonChanceI.Instance, IncreaseBoonChanceII.Instance, IncreaseBoonChanceBoth.Instance],
+            [IncreaseBoonItems.Instance],
+            [IncreaseAttemptItems.Instance, IncreaseAttemptItemsII.Instance],
         ];
         return [.. RecursiveGenerateActionLists(maxGP, oneOfActions, new ActionsList([]))];
     }
@@ -50,18 +50,18 @@ internal static class Optimizer
         }
 
         List<ActionsList> s1res = [actions];
-        for (int i = 1; i <= (maxGP - actions.GP) / SolidReason.Instance.GP; i++)
+        for (int i = 1; i <= (maxGP - actions.GP) / IncreaseAttempts.Instance.GP; i++)
         {
-            s1res.Add(new ActionsList(s1res[i-1].Actions.Add(SolidReason.Instance)));
+            s1res.Add(new ActionsList(s1res[i-1].Actions.Add(IncreaseAttempts.Instance)));
         }
 
         List<ActionsList> res = [];
         for (int i = 0; i < s1res.Count; i++)
         {
             res.Add(s1res[i]);
-            for (int j = 1; j <= (maxGP - res[j-1].GP) / BountifulYield.Instance.GP; j++)
+            for (int j = 1; j <= (maxGP - res[j-1].GP) / IncreaseNextAttemptItems.Instance.GP; j++)
             {
-                res.Add(new ActionsList(res[j-1].Actions.Add(BountifulYield.Instance)));
+                res.Add(new ActionsList(res[j-1].Actions.Add(IncreaseNextAttemptItems.Instance)));
             }
         }
 

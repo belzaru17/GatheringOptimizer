@@ -2,7 +2,8 @@
 
 internal interface IAction
 {
-    string Name { get; }
+    string Name_MINER { get; }
+    string Name_BOTANIST { get; }
 
     int GP { get; }
 

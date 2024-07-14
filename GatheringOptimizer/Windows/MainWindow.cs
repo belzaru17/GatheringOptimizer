@@ -10,9 +10,18 @@ namespace GatheringOptimizer.Windows;
 
 public class MainWindow : Window, IDisposable
 {
+    private enum SortColumn {
+        SORT_GP = 0,
+        SORT_MIN,
+        SORT_AVG,
+        SORT_MAX,
+    };
+
     public MainWindow(Plugin plugin) : base(
         "Gathering Optimizer", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
+        this.plugin = plugin;
+
         maxGP = plugin.Configuration.MaxGP;
         SizeConstraints = new() {
             MinimumSize = new Vector2(450, 600),
@@ -27,9 +36,32 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
+
         bool changed = false;
-        ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Max GP", ref maxGP);
+
+        if (autoMaxGP)
+        {
+            if (Plugin.ClientState.LocalPlayer != null)
+            {
+                maxGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
+            }
+            ImGui.Text($"{maxGP} Max GP");
+        }
+        else
+        {
+            ImGui.SetNextItemWidth(100);
+            changed |= ImGui.InputInt("Max GP", ref maxGP);
+        }
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(170);
+        if (ImGui.Checkbox("Auto Max GP", ref autoMaxGP))
+        {
+            if (!autoMaxGP)
+            {
+                maxGP = plugin.Configuration.MaxGP;
+            }
+        }
+
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Attempts", ref attempts);
         ImGui.SetNextItemWidth(100);
@@ -47,66 +79,34 @@ public class MainWindow : Window, IDisposable
         if (changed || results == null)
         {
             results = Optimizer.GenerateResults(GetParameters());
-            lastSortColumn = -1;
+            SortResults();
         }
+
+        int newSortColumn = (int)sortColumn;
+        bool sortChanged = false;
+        sortChanged |= ImGui.RadioButton("Min", ref newSortColumn, (int)SortColumn.SORT_MIN);
+        ImGui.SameLine();
+        sortChanged |= ImGui.RadioButton("Avg", ref newSortColumn, (int)SortColumn.SORT_AVG);
+        ImGui.SameLine();
+        sortChanged |= ImGui.RadioButton("Max", ref newSortColumn, (int)SortColumn.SORT_MAX);
+        if (sortChanged)
+        {
+            sortColumn = (SortColumn)newSortColumn;
+            SortResults();
+        }
+        ImGui.SameLine();
+        ImGui.Checkbox("Debug View", ref debugView);
+        ImGui.Spacing();
 
         if (results != null)
         {
-            if (ImGui.BeginTable("Results", 5, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Sortable))
+            if (debugView)
             {
-                ImGui.TableSetupColumn("GP", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 30);
-                ImGui.TableSetupColumn("Min", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 40);
-                ImGui.TableSetupColumn("Avg", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 40);
-                ImGui.TableSetupColumn("Max", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 40);
-                ImGui.TableSetupColumn("Actions");
-                ImGui.TableHeadersRow();
-
-                var sortSpecs = ImGui.TableGetSortSpecs();
-                if (sortSpecs.SpecsCount > 0)
-                {
-                    var sortOrder = sortSpecs.Specs;
-                    if (sortOrder.ColumnIndex != lastSortColumn || sortOrder.SortDirection != lastSortDirection)
-                    {
-                        if (sortOrder.ColumnIndex == 0)
-                        {
-                            results = results.OrderByDescending(x => x.GP);
-                        }
-                        else if (sortOrder.ColumnIndex == 1)
-                        {
-                            results = results.OrderByDescending(x => x.Min);
-                        }
-                        else if (sortOrder.ColumnIndex == 2)
-                        {
-                            results = results.OrderByDescending(x => x.Avg);
-                        }
-                        else if (sortOrder.ColumnIndex == 3)
-                        {
-                            results = results.OrderByDescending(x => x.Max);
-                        }
-                        if (sortOrder.SortDirection == ImGuiSortDirection.Ascending)
-                        {
-                            results = results.Reverse();
-                        }
-                        lastSortColumn = sortOrder.ColumnIndex;
-                        lastSortDirection = sortOrder.SortDirection;
-                    }
-                }
-
-                foreach (var result in results)
-                {
-                    ImGui.TableNextRow();
-                    ImGui.TableSetColumnIndex(0);
-                    ImGui.Text($"{result.GP,4:N0}");
-                    ImGui.TableNextColumn();
-                    ImGui.Text($"{result.Min,5:N2}");
-                    ImGui.TableNextColumn();
-                    ImGui.Text($"{result.Avg,5:N2}");
-                    ImGui.TableNextColumn();
-                    ImGui.Text($"{result.Max,5:N2}");
-                    ImGui.TableNextColumn();
-                    DrawResult(result);
-                }
-                ImGui.EndTable();
+                DrawResultsDebugView(results);
+            }
+            else if (results.Any())
+            {
+                DrawTopResult(results.First());
             }
         }
     }
@@ -116,17 +116,114 @@ public class MainWindow : Window, IDisposable
         return new GatheringParameters(maxGP, attempts, gatheringChance / 100.0, gathererBoonChance / 100.0, attemptItems, bountifulYieldItems);
     }
 
-    private static void DrawResult(GatheringResult result)
+    private static bool IsBotanist()
     {
-        ImGui.Text("");
-        foreach (var action in result.ActionsList.Actions)
-        {
-            ImGui.SameLine();
-            ImGui.Text($" {action.Name}");
-        }
-
+        return Plugin.ClientState.LocalPlayer?.ClassJob.Id == 17;
     }
 
+    private static void DrawTopResult(GatheringResult result)
+    {
+        if (ImGui.BeginChild("Result"))
+        {
+            ImGui.Columns(2);
+            ImGui.Text($"GP:  {result.GP,4:N0}");
+            ImGui.Text($"Min: {result.Min,5:N2}"); ImGui.SameLine();
+            ImGui.Text($"Avg: {result.Avg,5:N2}"); ImGui.SameLine();
+            ImGui.Text($"Max: {result.Max,5:N2}");
+            ImGui.NextColumn();
+            ImGui.Text("Actions");
+            foreach (var action in result.ActionsList.Actions)
+            {
+                if (IsBotanist()) {
+                    ImGui.Text($" {action.Name_BOTANIST}");
+                } else
+                {
+                    ImGui.Text($" {action.Name_MINER}");
+                }
+            }
+            ImGui.EndChild();
+        }
+    }
+
+    private static void DrawResultsDebugView(IEnumerable<GatheringResult> results)
+    {
+        bool botanist = IsBotanist();
+        if (ImGui.BeginTable("Results", 5, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg))
+        {
+            ImGui.TableSetupColumn("GP", ImGuiTableColumnFlags.WidthFixed, 30);
+            ImGui.TableSetupColumn("Min", ImGuiTableColumnFlags.WidthFixed, 40);
+            ImGui.TableSetupColumn("Avg", ImGuiTableColumnFlags.WidthFixed, 40);
+            ImGui.TableSetupColumn("Max", ImGuiTableColumnFlags.WidthFixed, 40);
+            ImGui.TableSetupColumn("Actions");
+            ImGui.TableHeadersRow();
+
+            foreach (var result in results)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Text($"{result.GP,4:N0}");
+                ImGui.TableNextColumn();
+                ImGui.Text($"{result.Min,5:N2}");
+                ImGui.TableNextColumn();
+                ImGui.Text($"{result.Avg,5:N2}");
+                ImGui.TableNextColumn();
+                ImGui.Text($"{result.Max,5:N2}");
+                ImGui.TableNextColumn();
+                ImGui.Text("");
+                foreach (var action in result.ActionsList.Actions)
+                {
+                    ImGui.SameLine();
+                    if (botanist)
+                    {
+                        ImGui.Text($" {action.Name_BOTANIST}");
+                    }
+                    else
+                    {
+                        ImGui.Text($" {action.Name_MINER}");
+                    }
+                }
+            }
+            ImGui.EndTable();
+        }
+    }
+
+    private void SortResults()
+    {
+        if (results == null)
+        {
+            return;
+        }
+        switch (sortColumn)
+        {
+            case SortColumn.SORT_GP:
+                {
+                    results = results.OrderByDescending(x => (x.GP, x.Avg));
+                    break;
+                }
+
+            case SortColumn.SORT_MIN:
+                {
+                    results = results.OrderByDescending(x => (x.Min, -x.GP));
+                    break;
+                }
+
+            case SortColumn.SORT_AVG:
+                {
+                    results = results.OrderByDescending(x => (x.Avg, -x.GP));
+                    break;
+                }
+
+            case SortColumn.SORT_MAX:
+                {
+                    results = results.OrderByDescending(x => (x.Max, -x.GP));
+                    break;
+                }
+        }
+    }
+
+    private readonly Plugin plugin;
+
+    private bool autoMaxGP = true;
     private int maxGP;
     private int attempts = 6;
     private int attemptItems = 1;
@@ -135,6 +232,6 @@ public class MainWindow : Window, IDisposable
     private int bountifulYieldItems = 1;
 
     private IEnumerable<GatheringResult>? results = null;
-    private short lastSortColumn = -1;
-    private ImGuiSortDirection lastSortDirection = ImGuiSortDirection.Descending;
+    private SortColumn sortColumn = SortColumn.SORT_AVG;
+    private bool debugView = false;
 }

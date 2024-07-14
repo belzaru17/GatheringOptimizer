@@ -4,7 +4,8 @@ namespace GatheringOptimizer.Algorithm;
 
 internal abstract class BaseAction : IAction
 {
-    public abstract string Name { get; }
+    public abstract string Name_MINER { get; }
+    public abstract string Name_BOTANIST { get; }
 
     public abstract int GP { get; }
 
@@ -21,146 +22,159 @@ internal abstract class BaseAction : IAction
     public virtual int ExtraBountifulYieldCount => 0;
 }
 
-internal sealed class SharpVision : BaseAction
+internal sealed class IncreaseGatheringChance : BaseAction
 {
-    public override string Name => "Sharp Vision";
+    public override string Name_MINER => "Sharp Vision";
+    public override string Name_BOTANIST => "Field Mastery";
     public override int GP => 50;
     public override double GatheringBonus => 0.05;
 
-    public static SharpVision Instance => instance.Value;
+    public static IncreaseGatheringChance Instance => instance.Value;
 
-    private static readonly Lazy<SharpVision> instance = new(() => new SharpVision());
+    private static readonly Lazy<IncreaseGatheringChance> instance = new(() => new IncreaseGatheringChance());
 
-    private SharpVision() { }
+    private IncreaseGatheringChance() { }
 }
 
-internal sealed class SharpVisionII : BaseAction
+internal sealed class IncreaseGatheringChanceII : BaseAction
 {
-    public override string Name => "Sharp Vision II";
+    public override string Name_MINER => "Sharp Vision II";
+    public override string Name_BOTANIST => "Field Mastery II";
     public override int GP => 100;
     public override double GatheringBonus => 0.10;
 
-    public static SharpVisionII Instance => instance.Value;
+    public static IncreaseGatheringChanceII Instance => instance.Value;
 
-    private static readonly Lazy<SharpVisionII> instance = new(() => new SharpVisionII());
+    private static readonly Lazy<IncreaseGatheringChanceII> instance = new(() => new IncreaseGatheringChanceII());
 
-    private SharpVisionII() { }
+    private IncreaseGatheringChanceII() { }
 }
 
-internal sealed class SharpVisionIII : BaseAction
+internal sealed class IncreaseGatheringChanceIII : BaseAction
 {
-    public override string Name => "Sharp Vision III";
+    public override string Name_MINER => "Sharp Vision III";
+    public override string Name_BOTANIST => "Field Mastery III";
     public override int GP => 250;
     public override double GatheringBonus => 0.50;
 
-    public static SharpVisionIII Instance => instance.Value;
+    public static IncreaseGatheringChanceIII Instance => instance.Value;
 
-    private static readonly Lazy<SharpVisionIII> instance = new(() => new SharpVisionIII());
+    private static readonly Lazy<IncreaseGatheringChanceIII> instance = new(() => new IncreaseGatheringChanceIII());
 
-    private SharpVisionIII() { }
+    private IncreaseGatheringChanceIII() { }
 }
 
-internal sealed class GiftI : BaseAction
+internal sealed class IncreaseBoonChanceI : BaseAction
 {
-    public override string Name => "Gift I";
+    public override string Name_MINER => "Mountaineer's Gift I";
+    public override string Name_BOTANIST => "Pioneer's Gift I";
     public override int GP => 50;
     public override double GatherersBoonBonus => 0.10;
 
-    public static GiftI Instance => instance.Value;
+    public static IncreaseBoonChanceI Instance => instance.Value;
 
-    private static readonly Lazy<GiftI> instance = new(() => new GiftI());
+    private static readonly Lazy<IncreaseBoonChanceI> instance = new(() => new IncreaseBoonChanceI());
 
-    private GiftI() { }
+    private IncreaseBoonChanceI() { }
 }
 
-internal sealed class GiftII : BaseAction
+internal sealed class IncreaseBoonChanceII : BaseAction
 {
-    public override string Name => "Gift II";
+    public override string Name_MINER => "Mountaineer's Gift II";
+    public override string Name_BOTANIST => "Pioneer's Gift II";
     public override int GP => 100;
     public override double GatheringBonus => 0.30;
 
-    public static GiftII Instance => instance.Value;
+    public static IncreaseBoonChanceII Instance => instance.Value;
 
-    private static readonly Lazy<GiftII> instance = new(() => new GiftII());
+    private static readonly Lazy<IncreaseBoonChanceII> instance = new(() => new IncreaseBoonChanceII());
 
-    private GiftII() { }
+    private IncreaseBoonChanceII() { }
 }
 
-internal sealed class BothGifts : BaseAction
+internal sealed class IncreaseBoonChanceBoth : BaseAction
 {
-    public override string Name => "Gift I + Gift II";
+    public override string Name_MINER => "Mountaineer's Gift I + Mountaineer's Gift II";
+    public override string Name_BOTANIST => "Pioneer's Gift I + Pioneer's Gift II";
     public override int GP => 150;
     public override double GatheringBonus => 0.40;
 
-    public static BothGifts Instance => instance.Value;
+    public static IncreaseBoonChanceBoth Instance => instance.Value;
 
-    private static readonly Lazy<BothGifts> instance = new(() => new BothGifts());
+    private static readonly Lazy<IncreaseBoonChanceBoth> instance = new(() => new IncreaseBoonChanceBoth());
 
-    private BothGifts() { }
+    private IncreaseBoonChanceBoth() { }
 }
 
-internal sealed class NaldThalsTidings : BaseAction
+internal sealed class IncreaseBoonItems : BaseAction
 {
-    public override string Name => "Nald'thal's Tidings";
+    public override string Name_MINER => "Nald'thal's Tidings";
+    public override string Name_BOTANIST => "Nophica's Tidings";
     public override int GP => 200;
     public override int GatherersBoonExtraItems => 1;
 
-    public static NaldThalsTidings Instance => instance.Value;
+    public static IncreaseBoonItems Instance => instance.Value;
 
-    private static readonly Lazy<NaldThalsTidings> instance = new(() => new NaldThalsTidings());
+    private static readonly Lazy<IncreaseBoonItems> instance = new(() => new IncreaseBoonItems());
 
-    private NaldThalsTidings() { }
+    private IncreaseBoonItems() { }
 }
 
-internal sealed class KingsYield : BaseAction
+internal sealed class IncreaseAttemptItems : BaseAction
 {
-    public override string Name => "Kings Yield";
+    public override string Name_MINER => "Kings Yield";
+    public override string Name_BOTANIST => "Blessed Harvest";
     public override int GP => 400;
     public override int AttemptExtraItems => 1;
 
-    public static KingsYield Instance => instance.Value;
+    public static IncreaseAttemptItems Instance => instance.Value;
 
-    private static readonly Lazy<KingsYield> instance = new(() => new KingsYield());
+    private static readonly Lazy<IncreaseAttemptItems> instance = new(() => new IncreaseAttemptItems());
 
-    private KingsYield() { }
+    private IncreaseAttemptItems() { }
 }
 
-internal sealed class KingsYieldII : BaseAction
+internal sealed class IncreaseAttemptItemsII : BaseAction
 {
-    public override string Name => "Kings Yield II";
+    public override string Name_MINER => "Kings Yield II";
+    public override string Name_BOTANIST => "Blessed Harvest II";
     public override int GP => 500;
     public override int AttemptExtraItems => 2;
 
-    public static KingsYieldII Instance => instance.Value;
+    public static IncreaseAttemptItemsII Instance => instance.Value;
 
-    private static readonly Lazy<KingsYieldII> instance = new(() => new KingsYieldII());
+    private static readonly Lazy<IncreaseAttemptItemsII> instance = new(() => new IncreaseAttemptItemsII());
 
-    private KingsYieldII() { }
+    private IncreaseAttemptItemsII() { }
 }
 
-internal sealed class SolidReason : BaseAction
+internal sealed class IncreaseAttempts : BaseAction
 {
-    public override string Name => "Solid Reason";
+    public override string Name_MINER => "Solid Reason";
+    public override string Name_BOTANIST => "Ageless Words";
     public override int GP => 300;
     public override int ExtraAttempts => 1;
     public override int ExtraAttemptsProcs => 1;
 
-    public static SolidReason Instance => instance.Value;
+    public static IncreaseAttempts Instance => instance.Value;
 
-    private static readonly Lazy<SolidReason> instance = new(() => new SolidReason());
+    private static readonly Lazy<IncreaseAttempts> instance = new(() => new IncreaseAttempts());
 
-    private SolidReason() { }
+    private IncreaseAttempts() { }
 }
 
-internal sealed class BountifulYield : BaseAction
+internal sealed class IncreaseNextAttemptItems : BaseAction
 {
-    public override string Name => "Bountiful Yield";
+    public override string Name_MINER => "Bountiful Yield";
+    public override string Name_BOTANIST => "Bountiful Harvest";
     public override int GP => 100;
     public override int ExtraBountifulYieldCount => 1;
 
-    public static BountifulYield Instance => instance.Value;
+    public static IncreaseNextAttemptItems Instance => instance.Value;
 
-    private static readonly Lazy<BountifulYield> instance = new(() => new BountifulYield());
+    private static readonly Lazy<IncreaseNextAttemptItems> instance = new(() => new IncreaseNextAttemptItems());
 
-    private BountifulYield() { }
+    private IncreaseNextAttemptItems() { }
 }
+
+// Clear Vision / Flora Mastery
