@@ -11,11 +11,10 @@ namespace GatheringOptimizer.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    private enum SortColumn {
-        SORT_GP = 0,
-        SORT_MIN,
-        SORT_AVG,
-        SORT_MAX,
+    private enum BestResultSelector {
+        BEST_MIN = 0,
+        BEST_AVG,
+        BEST_MAX,
     };
 
     public MainWindow(Plugin plugin) : base(
@@ -40,34 +39,21 @@ public class MainWindow : Window, IDisposable
 
         bool changed = false;
 
-        if (autoGP)
+        ImGui.SetNextItemWidth(100);
+        changed |= ImGui.InputInt("Max GP", ref maxGP);
+        ImGui.SetNextItemWidth(100);
+        changed |= ImGui.InputInt("Current GP", ref currentGP);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(200);
+        if (ImGui.Button("Auto"))
         {
             int newMaxGP = ((int?)Plugin.ClientState.LocalPlayer?.MaxGp) ?? maxGP;
             int newCurrentGP = ((int?)Plugin.ClientState.LocalPlayer?.CurrentGp) ?? currentGP;
-            if ((Plugin.ClientState.LocalPlayer != null) && ((newMaxGP !=  maxGP) || (newCurrentGP != currentGP)))
+            if ((Plugin.ClientState.LocalPlayer != null) && ((newMaxGP != maxGP) || (newCurrentGP != currentGP)))
             {
                 changed = true;
                 maxGP = newMaxGP;
                 currentGP = newCurrentGP;
-            }
-            ImGui.Text($"{maxGP} Max GP");
-            ImGui.Text($"{currentGP} Max GP");
-        }
-        else
-        {
-            ImGui.SetNextItemWidth(100);
-            changed |= ImGui.InputInt("Max GP", ref maxGP);
-            ImGui.SetNextItemWidth(100);
-            changed |= ImGui.InputInt("Current GP", ref currentGP);
-        }
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(200);
-        if (ImGui.Checkbox("Auto GP", ref autoGP))
-        {
-            changed = true;
-            if (!autoGP)
-            {
-                currentGP = maxGP = plugin.Configuration.MaxGP;
             }
         }
 
@@ -87,60 +73,68 @@ public class MainWindow : Window, IDisposable
 
         if (changed)
         {
-            results = null;
+            bestMin = bestAvg = bestMax = null;
             calculatePending = true;
+            calculateThread?.Interrupt();
         }
-        if (!(calculateThread?.IsAlive ?? true))
+        if (calculatePending)
         {
-            calculateThread = null;
-        }
-        if (calculatePending && results != null)
-        {
-            results = null;
-        }
-        if (results == null && calculateThread == null)
-        {
-            calculatePending = false;
-            calculateThread = new Thread(() =>
-            {
-                results = SortResults(Optimizer.GenerateResults(GetParameters(), currentGP));
-            });
-            calculateThread.Start();
+            bestMin = bestAvg = bestMax = null;
         }
 
-        int newSortColumn = (int)sortColumn;
+        int newBestResultSelector = (int)bestResultSelector;
         bool sortChanged = false;
-        sortChanged |= ImGui.RadioButton("Min", ref newSortColumn, (int)SortColumn.SORT_MIN);
+        sortChanged |= ImGui.RadioButton("Min", ref newBestResultSelector, (int)BestResultSelector.BEST_MIN);
         ImGui.SameLine();
-        sortChanged |= ImGui.RadioButton("Avg", ref newSortColumn, (int)SortColumn.SORT_AVG);
+        sortChanged |= ImGui.RadioButton("Avg", ref newBestResultSelector, (int)BestResultSelector.BEST_AVG);
         ImGui.SameLine();
-        sortChanged |= ImGui.RadioButton("Max", ref newSortColumn, (int)SortColumn.SORT_MAX);
+        sortChanged |= ImGui.RadioButton("Max", ref newBestResultSelector, (int)BestResultSelector.BEST_MAX);
         if (sortChanged)
         {
-            sortColumn = (SortColumn)newSortColumn;
-            if (results != null)
-            {
-                results = SortResults(results);
-            }
+            bestResultSelector = (BestResultSelector)newBestResultSelector;
         }
         ImGui.SameLine();
-        ImGui.Checkbox("Debug View", ref debugView);
-        ImGui.Spacing();
-
-        if (results != null)
+        bool disabled = !calculatePending || calculateThread != null;
+        if (disabled)
         {
-            if (debugView)
+            ImGui.BeginDisabled();
+        }
+        if (ImGui.Button("Calculate"))
+        {
+            if (calculateThread == null)
             {
-                DrawResultsDebugView(results);
-            }
-            else if (results.Any())
-            {
-                DrawTopResult(results.First());
+                calculatePending = false;
+                calculateThread = new Thread(() =>
+                {
+                    UpdateBestResults(Optimizer.GenerateResults(GetParameters(), currentGP));
+                    calculateThread = null;
+                });
+                calculateThread.Start();
             }
         }
-        else
+        if (disabled)
         {
-            ImGui.Text("Calculating...");
+            ImGui.EndDisabled();
+        }
+        ImGui.Spacing();
+
+        switch (bestResultSelector)
+        {
+            case BestResultSelector.BEST_MIN:
+                {
+                    DrawTopResult(bestMin);
+                    break;
+                }
+            case BestResultSelector.BEST_AVG:
+                {
+                    DrawTopResult(bestAvg);
+                    break;
+                }
+            case BestResultSelector.BEST_MAX:
+                {
+                    DrawTopResult(bestMax);
+                    break;
+                }
         }
     }
 
@@ -154,8 +148,16 @@ public class MainWindow : Window, IDisposable
         return Plugin.ClientState.LocalPlayer?.ClassJob.Id == 17;
     }
 
-    private static void DrawTopResult(GatheringResult result)
+    private void DrawTopResult(GatheringResult? result)
     {
+        if (result == null)
+        {
+            if (calculateThread != null)
+            {
+                ImGui.Text("Calculating...");
+            }
+            return;
+        }
         if (ImGui.BeginChild("Result"))
         {
             ImGui.Columns(2);
@@ -220,36 +222,15 @@ public class MainWindow : Window, IDisposable
         }
     }
 
-    private IEnumerable<GatheringResult> SortResults(IEnumerable<GatheringResult> results)
+    private void UpdateBestResults(IEnumerable<GatheringResult> results)
     {
-        switch (sortColumn)
-        {
-            case SortColumn.SORT_GP:
-                {
-                    return results.OrderByDescending(x => (x.State.UsedGP, x.Avg));
-                }
-
-            case SortColumn.SORT_MIN:
-                {
-                    return results.OrderByDescending(x => (x.Min, -x.State.UsedGP));
-                }
-
-            case SortColumn.SORT_AVG:
-                {
-                    return results.OrderByDescending(x => (x.Avg, -x.State.UsedGP));
-                }
-
-            case SortColumn.SORT_MAX:
-                {
-                    return results.OrderByDescending(x => (x.Max, -x.State.UsedGP));
-                }
-        }
-        return results;
+        bestMin = results.OrderByDescending(x => (x.Min, -x.State.UsedGP)).First();
+        bestAvg = results.OrderByDescending(x => (x.Avg, -x.State.UsedGP)).First();
+        bestMax = results.OrderByDescending(x => (x.Max, -x.State.UsedGP)).First();
     }
 
     private readonly Plugin plugin;
 
-    private bool autoGP = true;
     private int maxGP;
     private int currentGP;
     private int attempts = 6;
@@ -258,9 +239,10 @@ public class MainWindow : Window, IDisposable
     private int gathererBoonChance = 30;
     private int bountifulYieldItems = 2;
 
-    private IEnumerable<GatheringResult>? results = null;
-    private SortColumn sortColumn = SortColumn.SORT_AVG;
-    private bool debugView = false;
+    private GatheringResult? bestMax = null;
+    private GatheringResult? bestAvg = null;
+    private GatheringResult? bestMin = null;
+    private BestResultSelector bestResultSelector = BestResultSelector.BEST_AVG;
 
     private bool calculatePending = true;
     private Thread? calculateThread;
