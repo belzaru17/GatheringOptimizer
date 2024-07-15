@@ -1,19 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace GatheringOptimizer.Algorithm;
 
 internal static class Optimizer
 {
-    public static ImmutableArray<GatheringResult> GenerateResults(GatheringParameters parameters, int currentGP)
+   // public static IComparer<double> BEST_AVG = (sxddfdfdfdd, xxcdfd) => -1;
+
+    public static GatheringResult GenerateBestResult(GatheringParameters parameters, Func<GatheringResult, GatheringResult, bool> comparer, int currentGP)
     {
         var initialState = new GatheringState(parameters, currentGP);
         var initialResult = new GatheringResult(0, 0.0, 0, [], initialState);
 
-        return [.. RecursiveGenerateActionLists(parameters, initialResult, POSSIBLE_BUFF_ACTIONS)];
+        return RecursiveGenerateBestResult(parameters, comparer, initialResult, POSSIBLE_NON_GATHER_ACTIONS);
     }
 
-    private static List<IAction> POSSIBLE_BUFF_ACTIONS = [
+    private static List<IAction> POSSIBLE_NON_GATHER_ACTIONS = new List<IAction>() {
         IncreaseGatheringChanceAction.Instance,
         IncreaseGatheringChanceIIAction.Instance,
         IncreaseGatheringChanceIIIAction.Instance,
@@ -23,31 +28,46 @@ internal static class Optimizer
         IncreaseAttemptItemsAction.Instance,
         IncreaseAttemptItemsIIAction.Instance,
         IncreaseAttemptsAction.Instance,
-        // IncreaseAttemptsProcAction.Instance,
         IncreaseNextAttemptItemsAction.Instance,
-    ];
+    }.OrderBy((x) => x.GP).ToList();
 
-    private static List<GatheringResult> RecursiveGenerateActionLists(GatheringParameters parameters, GatheringResult partialResult, List<IAction> possibleActions)
+    private static GatheringResult RecursiveGenerateBestResult(GatheringParameters parameters, Func<GatheringResult, GatheringResult, bool>  comparer, GatheringResult partialResult, List<IAction> possibleActions)
     {
         if (partialResult.State.Integrity == 0)
         {
-            return [partialResult];
+            return partialResult;
         }
 
-        var result = new List<GatheringResult>();
+        var bestResult = partialResult;
         for (int i = 0; i < possibleActions.Count; i++)
         {
             var action = possibleActions[i];
+            if (action.GP > partialResult.State.CurrentGP)
+            {
+                break;
+            }
             if (action.CanExecute(partialResult.State))
             {
-                result.AddRange(RecursiveGenerateActionLists(parameters, partialResult.ExecuteAction(action), possibleActions.Slice(i, possibleActions.Count - i)));
+                var newResult = RecursiveGenerateBestResult(parameters, comparer, partialResult.ExecuteAction(action), possibleActions.Slice(i, possibleActions.Count - i));
+                Debug.Assert(newResult.State.Integrity == 0);
+                if (comparer(newResult,  bestResult))
+                {
+                    bestResult = newResult;
+                }
             }
         }
+
         var gatherAction = GatherAction.Instance;
-        if (gatherAction.CanExecute(partialResult.State))
+        if (gatherAction.CanExecute(bestResult.State))
         {
-            result.AddRange(RecursiveGenerateActionLists(parameters, partialResult.ExecuteAction(gatherAction), POSSIBLE_BUFF_ACTIONS));
+            var newResult = RecursiveGenerateBestResult(parameters, comparer, bestResult.ExecuteAction(gatherAction), POSSIBLE_NON_GATHER_ACTIONS);
+            if (comparer(newResult, bestResult))
+            {
+                bestResult = newResult;
+            }
         }
-        return result;
+
+        Debug.Assert(bestResult.State.Integrity == 0);
+        return bestResult;
     }
 }

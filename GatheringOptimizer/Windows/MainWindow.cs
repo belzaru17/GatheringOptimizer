@@ -3,9 +3,7 @@ using GatheringOptimizer.Algorithm;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Threading;
 
 namespace GatheringOptimizer.Windows;
 
@@ -71,71 +69,37 @@ public class MainWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.Separator();
 
-        if (changed)
-        {
-            bestMin = bestAvg = bestMax = null;
-            calculatePending = true;
-            calculateThread?.Interrupt();
-        }
-        if (calculatePending)
-        {
-            bestMin = bestAvg = bestMax = null;
-        }
-
         int newBestResultSelector = (int)bestResultSelector;
-        bool sortChanged = false;
-        sortChanged |= ImGui.RadioButton("Min", ref newBestResultSelector, (int)BestResultSelector.BEST_MIN);
+        changed |= ImGui.RadioButton("Min", ref newBestResultSelector, (int)BestResultSelector.BEST_MIN);
         ImGui.SameLine();
-        sortChanged |= ImGui.RadioButton("Avg", ref newBestResultSelector, (int)BestResultSelector.BEST_AVG);
+        changed |= ImGui.RadioButton("Avg", ref newBestResultSelector, (int)BestResultSelector.BEST_AVG);
         ImGui.SameLine();
-        sortChanged |= ImGui.RadioButton("Max", ref newBestResultSelector, (int)BestResultSelector.BEST_MAX);
-        if (sortChanged)
+        changed |= ImGui.RadioButton("Max", ref newBestResultSelector, (int)BestResultSelector.BEST_MAX);
+        if (changed || bestResult == null)
         {
             bestResultSelector = (BestResultSelector)newBestResultSelector;
-        }
-        ImGui.SameLine();
-        bool disabled = !calculatePending || calculateThread != null;
-        if (disabled)
-        {
-            ImGui.BeginDisabled();
-        }
-        if (ImGui.Button("Calculate"))
-        {
-            if (calculateThread == null)
+            switch (bestResultSelector)
             {
-                calculatePending = false;
-                calculateThread = new Thread(() =>
-                {
-                    UpdateBestResults(Optimizer.GenerateResults(GetParameters(), currentGP));
-                    calculateThread = null;
-                });
-                calculateThread.Start();
+                case BestResultSelector.BEST_MIN:
+                    {
+                        bestResult = Optimizer.GenerateBestResult(GetParameters(), GatheringResult.BetterMin, currentGP);
+                        break;
+                    }
+                case BestResultSelector.BEST_AVG:
+                    {
+                        bestResult = Optimizer.GenerateBestResult(GetParameters(), GatheringResult.BetterAvg, currentGP);
+                        break;
+                    }
+                case BestResultSelector.BEST_MAX:
+                    {
+                        bestResult = Optimizer.GenerateBestResult(GetParameters(), GatheringResult.BetterMax, currentGP);
+                        break;
+                    }
             }
         }
-        if (disabled)
-        {
-            ImGui.EndDisabled();
-        }
-        ImGui.Spacing();
 
-        switch (bestResultSelector)
-        {
-            case BestResultSelector.BEST_MIN:
-                {
-                    DrawTopResult(bestMin);
-                    break;
-                }
-            case BestResultSelector.BEST_AVG:
-                {
-                    DrawTopResult(bestAvg);
-                    break;
-                }
-            case BestResultSelector.BEST_MAX:
-                {
-                    DrawTopResult(bestMax);
-                    break;
-                }
-        }
+        ImGui.Spacing();
+        DrawTopResult(bestResult);
     }
 
     private GatheringParameters GetParameters()
@@ -152,10 +116,6 @@ public class MainWindow : Window, IDisposable
     {
         if (result == null)
         {
-            if (calculateThread != null)
-            {
-                ImGui.Text("Calculating...");
-            }
             return;
         }
         if (ImGui.BeginChild("Result"))
@@ -222,13 +182,6 @@ public class MainWindow : Window, IDisposable
         }
     }
 
-    private void UpdateBestResults(IEnumerable<GatheringResult> results)
-    {
-        bestMin = results.OrderByDescending(x => (x.Min, -x.State.UsedGP)).First();
-        bestAvg = results.OrderByDescending(x => (x.Avg, -x.State.UsedGP)).First();
-        bestMax = results.OrderByDescending(x => (x.Max, -x.State.UsedGP)).First();
-    }
-
     private readonly Plugin plugin;
 
     private int maxGP;
@@ -239,11 +192,6 @@ public class MainWindow : Window, IDisposable
     private int gathererBoonChance = 30;
     private int bountifulYieldItems = 2;
 
-    private GatheringResult? bestMax = null;
-    private GatheringResult? bestAvg = null;
-    private GatheringResult? bestMin = null;
+    private GatheringResult? bestResult = null;
     private BestResultSelector bestResultSelector = BestResultSelector.BEST_AVG;
-
-    private bool calculatePending = true;
-    private Thread? calculateThread;
 }

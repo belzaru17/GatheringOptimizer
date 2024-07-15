@@ -9,7 +9,7 @@ internal sealed class GatherAction : IAction
 
     public int GP => 0;
 
-    public bool CanExecute(GatheringState state) => true;
+    public bool CanExecute(GatheringState state) => state.Integrity > 0;
 
     public ActionResult Execute(GatheringState state)
     {
@@ -252,7 +252,7 @@ internal sealed class IncreaseAttemptsAction : BaseBuffAction
 
     protected override GatheringState ExecuteBuff(GatheringState state)
     {
-        return state.AddBuff(ExtraAttemptProcBuff.Instance, 0).AddIntegrity(GP);
+        return state.AddIntegrity(GP);
     }
 
     public static IncreaseAttemptsAction Instance => instance.Value;
@@ -260,29 +260,6 @@ internal sealed class IncreaseAttemptsAction : BaseBuffAction
     private static readonly Lazy<IncreaseAttemptsAction> instance = new(() => new IncreaseAttemptsAction());
 
     private IncreaseAttemptsAction() { }
-}
-
-internal sealed class IncreaseAttemptsProcAction : BaseBuffAction
-{
-    public override string Name_MINER => "Wise to the World";
-    public override string Name_BOTANIST => "Wise to the World";
-    public override int GP => 0;
-
-    public override bool CanExecute(GatheringState state)
-    {
-        return base.CanExecute(state) && state.Integrity < state.Parameters.MaxIntegrity && state.Buffs.Contains(ExtraAttemptProcBuff.Instance);
-    }
-
-    protected override GatheringState ExecuteBuff(GatheringState state)
-    {
-        return state.AddIntegrity(0, ExtraAttemptProcBuff.Instance);
-    }
-
-    public static IncreaseAttemptsProcAction Instance => instance.Value;
-
-    private static readonly Lazy<IncreaseAttemptsProcAction> instance = new(() => new IncreaseAttemptsProcAction());
-
-    private IncreaseAttemptsProcAction() { }
 }
 
 internal sealed class IncreaseNextAttemptItemsAction : BaseBuffAction

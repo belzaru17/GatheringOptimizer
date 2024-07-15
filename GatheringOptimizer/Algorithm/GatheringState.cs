@@ -24,11 +24,13 @@ internal class GatheringState
     public double GatherersBoonChance => Math.Min(Parameters.BaseGatherersBoonChance + Buffs.Sum(i => i.GatherersBoonBonus), 1.0);
     public int GatherersBoonExtraItems => Buffs.Sum(i => i.GatherersBoonExtraItems);
 
-    public int AttemptItems => Parameters.BaseAttemptItems  + Buffs.Sum(i => i.AttemptExtraItems) + (Buffs.Any((i) => i.BountifulYield) ? Parameters.BountifulYieldItems : 0);
+    public int AttemptItems => Parameters.BaseAttemptItems + Buffs.Sum(i => i.AttemptExtraItems);
+    public int BountifulYieldItems => Buffs.Any((i) => i.BountifulYield) ? Parameters.BountifulYieldItems : 0;
+    public bool HasExtraActionProc => Buffs.Contains(ExtraAttemptProcBuff.Instance);
 
-    public int MinItems => (GatheringChance < 1) ? 0 : AttemptItems;
-    public double AvgItems => GatheringChance * (AttemptItems + GatherersBoonChance * (1 + GatherersBoonExtraItems));
-    public int MaxItems => AttemptItems + 1 + GatherersBoonExtraItems;
+    public int MinItems => (GatheringChance < 1) ? 0 : (AttemptItems + BountifulYieldItems);
+    public double AvgItems => GatheringChance * ((AttemptItems + GatherersBoonChance * (1 + GatherersBoonExtraItems)) * (HasExtraActionProc ? 1.5 : 1) + BountifulYieldItems);
+    public int MaxItems => (AttemptItems + 1 + GatherersBoonExtraItems) * (HasExtraActionProc? 2 : 1) + BountifulYieldItems;
 
 
     public GatheringState(GatheringParameters parameters) : this(parameters, parameters.MaxGP)
@@ -49,17 +51,13 @@ internal class GatheringState
         return new GatheringState(Parameters, CurrentGP - gpCost, Integrity, UsedGP + gpCost, newBuffs);
     }
 
-    public GatheringState AddIntegrity(int gpCost, IBuff? removeBuff = null)
+    public GatheringState AddIntegrity(int gpCost)
     {
         Debug.Assert(CurrentGP >= gpCost);
         Debug.Assert(Integrity < Parameters.MaxIntegrity);
-        Debug.Assert(removeBuff == null || Buffs.Contains(removeBuff));
 
         var newBuffs = Buffs.ToHashSet();
-        if (removeBuff != null)
-        {
-            newBuffs.Remove(removeBuff);
-        }
+        newBuffs.Add(ExtraAttemptProcBuff.Instance);
         return new GatheringState(Parameters, CurrentGP - gpCost, Integrity + 1, UsedGP + gpCost, newBuffs);
     }
 
@@ -74,14 +72,7 @@ internal class GatheringState
         var avgItems = AvgItems;
         var maxItems = MaxItems;
 
-        if (newBuffs.Contains(ExtraAttemptProcBuff.Instance))
-        {
-            newBuffs.Remove(ExtraAttemptProcBuff.Instance);
-            var tmpState = new GatheringState(Parameters, CurrentGP, 1, UsedGP, newBuffs);
-            avgItems += tmpState.AvgItems / 2;  // 50% chance
-            maxItems += tmpState.MaxItems;
-        }
-
+        newBuffs.Remove(ExtraAttemptProcBuff.Instance);
         return new ActionResult(MinItems, avgItems, maxItems, new GatheringState(newParameters, Math.Min(CurrentGP + GP_RECOVERY_PER_GATHER, Parameters.MaxGP), Integrity - 1, UsedGP,  newBuffs));
     }
 
