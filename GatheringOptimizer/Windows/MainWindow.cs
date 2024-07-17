@@ -1,4 +1,6 @@
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Services;
 using GatheringOptimizer.Algorithm;
 using ImGuiNET;
 using System;
@@ -34,7 +36,6 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-
         bool changed = false;
 
         ImGui.SetNextItemWidth(100);
@@ -130,9 +131,17 @@ public class MainWindow : Window, IDisposable
             foreach (var action in result.Actions)
             {
                 if (IsBotanist()) {
+                    var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(action.IconId_BOTANIST));
+
+                    ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(24, 24));
+                    ImGui.SameLine();
                     ImGui.Text($" {action.Name_BOTANIST}");
                 } else
                 {
+                    var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(action.IconId_MINER));
+
+                    ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(24, 24));
+                    ImGui.SameLine();
                     ImGui.Text($" {action.Name_MINER}");
                 }
             }

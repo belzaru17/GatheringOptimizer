@@ -32,6 +32,9 @@ public class Plugin : IDalamudPlugin
     [PluginService]
     public static IPluginLog PluginLog { get; private set; } = null!;
 
+    [PluginService]
+    public static ITextureProvider TextureProvider { get; private set; } = null!;
+
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
 
