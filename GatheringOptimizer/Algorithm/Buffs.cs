@@ -133,6 +133,19 @@ internal sealed class IncreasedNextAttemptItemsBuff : BaseBuff
     private IncreasedNextAttemptItemsBuff() { }
 }
 
+internal sealed class IncreasedNextAttemptGatheringChanceBuff : BaseBuff
+{
+    public override string DebugName => "Increased Next Attempt Gathering Chance";
+    public override bool Ephemeral => true;
+    public override double GatheringBonus => 0.15;
+
+    public static IncreasedNextAttemptGatheringChanceBuff Instance => instance.Value;
+
+    private static readonly Lazy<IncreasedNextAttemptGatheringChanceBuff> instance = new(() => new IncreasedNextAttemptGatheringChanceBuff());
+
+    private IncreasedNextAttemptGatheringChanceBuff() { }
+}
+
 internal sealed class ExtraAttemptProcBuff : BaseBuff
 {
     public override string DebugName => "Extra Attempt Proc";

@@ -59,7 +59,6 @@ internal sealed class IncreaseGatheringChanceAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        // FIXME: override buffs
         return base.CanExecute(state) && state.GatheringChance < 1.0 && 
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
@@ -86,7 +85,6 @@ internal sealed class IncreaseGatheringChanceIIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        // FIXME: override buffs
         return base.CanExecute(state) && state.GatheringChance < 1.0 &&
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
@@ -113,7 +111,6 @@ internal sealed class IncreaseGatheringChanceIIIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        // FIXME: override buffs
         return base.CanExecute(state) && state.GatheringChance < 1.0 &&
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
@@ -217,7 +214,6 @@ internal sealed class IncreaseAttemptItemsAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        // FIXME: override buffs
         return base.CanExecute(state) &&
             !(state.Buffs.Contains(IncreasedAttemptItemsBuff.Instance) || state.Buffs.Contains(IncreasedAttemptItemsIIBuff.Instance));
     }
@@ -286,6 +282,32 @@ internal sealed class IncreaseAttemptsAction : BaseBuffAction
     private IncreaseAttemptsAction() { }
 }
 
+internal sealed class IncreaseNextAttemptGatheringChanceAction : BaseBuffAction
+{
+    public override string Name_MINER => "Clear Vision";
+    public override string Name_BOTANIST => "Flora Mastery";
+    public override uint IconId_MINER => 1020;
+    public override uint IconId_BOTANIST => 1070;
+    public override int GP => 50;
+
+    public override bool CanExecute(GatheringState state)
+    {
+        return base.CanExecute(state) && state.GatheringChance < 1.0 && !state.Buffs.Contains(IncreasedNextAttemptGatheringChanceBuff.Instance);
+    }
+
+    protected override GatheringState ExecuteBuff(GatheringState state)
+    {
+        return state.AddBuff(IncreasedNextAttemptGatheringChanceBuff.Instance, GP);
+    }
+
+    public static IncreaseNextAttemptGatheringChanceAction Instance => instance.Value;
+
+    private static readonly Lazy<IncreaseNextAttemptGatheringChanceAction> instance = new(() => new IncreaseNextAttemptGatheringChanceAction());
+
+    private IncreaseNextAttemptGatheringChanceAction() { }
+}
+
+
 internal sealed class IncreaseNextAttemptItemsAction : BaseBuffAction
 {
     public override string Name_MINER => "Bountiful Yield";
@@ -310,5 +332,3 @@ internal sealed class IncreaseNextAttemptItemsAction : BaseBuffAction
 
     private IncreaseNextAttemptItemsAction() { }
 }
-
-// FIXME: Clear Vision / Flora Mastery
