@@ -30,10 +30,16 @@ public class Plugin : IDalamudPlugin
     public static IDataManager Data { get; private set; } = null!;
 
     [PluginService]
-    public static IPluginLog PluginLog { get; private set; } = null!;
+    public static IPluginLog Log { get; private set; } = null!;
 
     [PluginService]
     public static ITextureProvider TextureProvider { get; private set; } = null!;
+
+    [PluginService]
+    public static IGameGui GameGui { get; private set; } = null!;
+
+    [PluginService]
+    public static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
 
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }

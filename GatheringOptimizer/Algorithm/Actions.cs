@@ -59,7 +59,7 @@ internal sealed class IncreaseGatheringChanceAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatheringChance < 1.0 && 
+        return base.CanExecute(state) && state.GatheringChance > 0.0 && state.GatheringChance < 1.0 && 
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
 
@@ -85,7 +85,7 @@ internal sealed class IncreaseGatheringChanceIIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatheringChance < 1.0 &&
+        return base.CanExecute(state) && state.GatheringChance > 0.0 && state.GatheringChance < 1.0 &&
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
 
@@ -111,7 +111,7 @@ internal sealed class IncreaseGatheringChanceIIIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatheringChance < 1.0 &&
+        return base.CanExecute(state) && state.GatheringChance > 0.0 && state.GatheringChance < 1.0 &&
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
 
@@ -137,7 +137,7 @@ internal sealed class IncreaseBoonChanceIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatherersBoonChance < 1.0 &&
+        return base.CanExecute(state) && state.GatherersBoonChance > 0.0 && state.GatherersBoonChance < 1.0 &&
             !state.Buffs.Contains(IncreasedBoonChanceIBuff.Instance);
     }
 
@@ -163,7 +163,7 @@ internal sealed class IncreaseBoonChanceIIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatherersBoonChance < 1.0 &&
+        return base.CanExecute(state) && state.GatherersBoonChance > 0.0 && state.GatherersBoonChance < 1.0 &&
             !state.Buffs.Contains(IncreasedBoonChanceIIBuff.Instance);
     }
 
@@ -235,7 +235,7 @@ internal sealed class IncreaseAttemptItemsIIAction : BaseBuffAction
     public override string Name_MINER => "Kings Yield II";
     public override string Name_BOTANIST => "Blessed Harvest II";
     public override uint IconId_MINER => 1007;
-    public override uint IconId_BOTANIST => 1056;
+    public override uint IconId_BOTANIST => 1057;
     public override int GP => 500;
 
     public override bool CanExecute(GatheringState state)
@@ -292,7 +292,7 @@ internal sealed class IncreaseNextAttemptGatheringChanceAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatheringChance < 1.0 && !state.Buffs.Contains(IncreasedNextAttemptGatheringChanceBuff.Instance);
+        return base.CanExecute(state) && state.GatheringChance > 0.0 && state.GatheringChance < 1.0 && !state.Buffs.Contains(IncreasedNextAttemptGatheringChanceBuff.Instance);
     }
 
     protected override GatheringState ExecuteBuff(GatheringState state)
