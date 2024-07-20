@@ -1,17 +1,15 @@
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using GatheringOptimizer.Algorithm;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using FFXIVClientStructs.FFXIV.Component.GUI;
-using System.Runtime.CompilerServices;
-using FFXIVClientStructs.FFXIV.Client.System.String;
-using static Lumina.Data.Parsing.Uld.NodeData;
 
 namespace GatheringOptimizer.Windows;
 
@@ -72,11 +70,11 @@ public class MainWindow : Window, IDisposable
         changed |= ImGui.InputInt("Gathering Chance", ref gatheringChance);
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Gatherer's Boon Chance", ref gatherersBoonChance);
-        ImGui.Spacing();
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Yield (#items)", ref yield);
+        ImGui.Spacing();
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Bountiful Yield (# items)", ref bountifulYieldItems);
+        changed |= ImGui.InputInt("Bountiful Yield (# items) [manual]", ref bountifulYieldItems);
         ImGui.SetNextItemWidth(100);
         ImGui.Spacing();
         ImGui.Separator();
@@ -228,7 +226,10 @@ public class MainWindow : Window, IDisposable
             }
             gatherWindowJustOpened = false;
 
-            integrity = addon->IntegrityTotal->NodeText.ToInteger();
+            if (addon->IntegrityTotal != null)
+            {
+                integrity = addon->IntegrityTotal->NodeText.ToInteger();
+            }
 
             AtkComponentCheckBox*[] gatherComponents = {
                 addon->GatheredItemComponentCheckBox1,
@@ -268,6 +269,11 @@ public class MainWindow : Window, IDisposable
                         }
                     }
                 });
+                var thisYield = GetYieldItems(component);
+                if (thisYield.HasValue)
+                {
+                    newYield = thisYield.Value;
+                }
             }
         }
         catch (Exception e)
@@ -300,6 +306,10 @@ public class MainWindow : Window, IDisposable
     private delegate void TextNodeAction(Utf8String textNode);
     private unsafe void GetTextNode(AtkComponentCheckBox* component, uint id, TextNodeAction action)
     {
+        if (component == null)
+        {
+            return;
+        }
         var node = component->GetTextNodeById(id);
         if (node != null)
         {
@@ -309,6 +319,21 @@ public class MainWindow : Window, IDisposable
                 action(textNode->NodeText);
             }
         }
+    }
+
+    private unsafe int? GetYieldItems(AtkComponentCheckBox* component)
+    {
+        if (component == null) return null;
+
+        var iconNode = component->UldManager.SearchNodeById(31);
+        if (iconNode == null || !iconNode->IsVisible()) return null;
+
+        var textNode = iconNode->GetComponent()->GetTextNodeById(7);
+        if (textNode == null) return null;
+
+        var tNode = textNode->GetAsAtkTextNode();
+        if (tNode == null || tNode->NodeText.ToString() == "") return null;
+        return tNode->NodeText.ToInteger();
     }
 
     private readonly Plugin plugin;
