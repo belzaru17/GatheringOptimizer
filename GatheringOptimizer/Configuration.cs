@@ -11,6 +11,8 @@ public class Configuration : IPluginConfiguration
 
     public int MaxGP { get; set; } = 800;
 
+    public bool AutoOpenOnGather { get; set; } = true;
+
     // the below exist just to make saving less cumbersome
     [NonSerialized]
     private IDalamudPluginInterface? pluginInterface;

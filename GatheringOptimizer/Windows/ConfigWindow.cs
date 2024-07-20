@@ -37,6 +37,13 @@ public class ConfigWindow : Window, IDisposable
             saveConfig = true;
         }
 
+        bool autoOpenOnGather = plugin.Configuration.AutoOpenOnGather;
+        if (ImGui.Checkbox("Auto Open on Gather", ref autoOpenOnGather))
+        {
+            plugin.Configuration.AutoOpenOnGather = autoOpenOnGather;
+            saveConfig = true;
+        }
+
         ImGui.Spacing();
         ImGui.Separator();
         string version = typeof(Plugin).Assembly.GetName().Version?.ToString(3) ?? "Unknown";

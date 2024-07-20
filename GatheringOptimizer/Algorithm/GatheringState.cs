@@ -24,13 +24,13 @@ internal class GatheringState
     public double GatherersBoonChance => Math.Min(Parameters.BaseGatherersBoonChance + Buffs.Sum(i => i.GatherersBoonBonus), 1.0);
     public int GatherersBoonExtraItems => Buffs.Sum(i => i.GatherersBoonExtraItems);
 
-    public int AttemptItems => Parameters.BaseAttemptItems + Buffs.Sum(i => i.AttemptExtraItems);
+    public int Yield => Parameters.BaseYield + Buffs.Sum(i => i.ExtraYield);
     public int BountifulYieldItems => Buffs.Any((i) => i.BountifulYield) ? Parameters.BountifulYieldItems : 0;
     public bool HasExtraActionProc => Buffs.Contains(ExtraAttemptProcBuff.Instance);
 
-    public int MinItems => (GatheringChance < 1) ? 0 : (AttemptItems + BountifulYieldItems);
-    public double AvgItems => GatheringChance * ((AttemptItems + GatherersBoonChance * (1 + GatherersBoonExtraItems)) * (HasExtraActionProc ? 1.5 : 1) + BountifulYieldItems);
-    public int MaxItems => (AttemptItems + 1 + GatherersBoonExtraItems) * (HasExtraActionProc? 2 : 1) + BountifulYieldItems;
+    public int MinItems => (GatheringChance < 1) ? 0 : (Yield + BountifulYieldItems);
+    public double AvgItems => GatheringChance * ((Yield + GatherersBoonChance * (1 + GatherersBoonExtraItems)) * (HasExtraActionProc ? 1.5 : 1) + BountifulYieldItems);
+    public int MaxItems => (Yield + 1 + GatherersBoonExtraItems) * (HasExtraActionProc? 2 : 1) + BountifulYieldItems;
 
 
     public GatheringState(GatheringParameters parameters) : this(parameters, parameters.MaxGP)

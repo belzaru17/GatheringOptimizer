@@ -9,6 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using System.Runtime.CompilerServices;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using static Lumina.Data.Parsing.Uld.NodeData;
 
 namespace GatheringOptimizer.Windows;
 
@@ -64,14 +67,14 @@ public class MainWindow : Window, IDisposable
         }
 
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Integrity", ref attempts);
+        changed |= ImGui.InputInt("Integrity", ref integrity);
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Gathering Chance", ref gatheringChance);
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Gatherer's Boon Chance", ref gatherersBoonChance);
         ImGui.Spacing();
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Yield (#items)", ref attemptItems);
+        changed |= ImGui.InputInt("Yield (#items)", ref yield);
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Bountiful Yield (# items)", ref bountifulYieldItems);
         ImGui.SetNextItemWidth(100);
@@ -113,7 +116,7 @@ public class MainWindow : Window, IDisposable
 
     private GatheringParameters GetParameters()
     {
-        return new GatheringParameters(currentGP, attempts, gatheringChance / 100.0, gatherersBoonChance / 100.0, attemptItems, bountifulYieldItems);
+        return new GatheringParameters(currentGP, integrity, gatheringChance / 100.0, gatherersBoonChance / 100.0, yield, bountifulYieldItems);
     }
 
     private static bool IsBotanist()
@@ -203,13 +206,19 @@ public class MainWindow : Window, IDisposable
     {
         if (type == AddonEvent.PostSetup)
         {
-            opened = true;
+            gatherWindowJustOpened = true;
             return;
         }
-        if (!opened)
+        if (!gatherWindowJustOpened)
         {
             return;
         }
+
+        int? newGatheringChance = null;
+        int? newGatherersBoonChance = null;
+        bool emptyGatherersBoonChance = false;
+        int newYield = 1;
+
         try
         {
             var addon = (AddonGathering*)args.Addon;
@@ -217,13 +226,9 @@ public class MainWindow : Window, IDisposable
             {
                 return;
             }
-            opened = false;
-            attempts = addon->IntegrityTotal->NodeText.ToInteger();
+            gatherWindowJustOpened = false;
 
-            int? newGatheringChance = null;
-            int? newGatherersBoonChance = null ;
-            bool emptyGatherersBoonChance = false;
-            int? newItemsPerAttempt = null;
+            integrity = addon->IntegrityTotal->NodeText.ToInteger();
 
             AtkComponentCheckBox*[] gatherComponents = {
                 addon->GatheredItemComponentCheckBox1,
@@ -237,75 +242,71 @@ public class MainWindow : Window, IDisposable
             };
             foreach (var component in gatherComponents)
             {
-                GetGatheringChance(component, ref newGatheringChance);
-                GetGatherersBoonChance(component, ref newGatherersBoonChance, ref emptyGatherersBoonChance);
+                GetTextNode(component, 10, (value) =>
+                {
+                    if (!(value.ToString() == "" || value.ToString() == "-"))
+                    {
+                        var iValue = value.ToInteger();
+                        if (!newGatheringChance.HasValue || (iValue < newGatheringChance.Value))
+                        {
+                            newGatheringChance = iValue;
+                        }
+                    }
+                });
+                GetTextNode(component, 16, (value) =>
+                {
+                    if (value.ToString() == "-")
+                    {
+                        emptyGatherersBoonChance = true;
+                    }
+                    else if (value.ToString() != "")
+                    {
+                        var iValue = value.ToInteger();
+                        if (!newGatherersBoonChance.HasValue || (iValue < newGatherersBoonChance.Value))
+                        {
+                            newGatherersBoonChance = iValue;
+                        }
+                    }
+                });
             }
-
-            if (newGatheringChance.HasValue)
-            {
-                gatheringChance = newGatheringChance.Value;
-            }
-            if (newGatherersBoonChance.HasValue)
-            {
-                gatherersBoonChance = newGatherersBoonChance.Value;
-            }
-            else if (emptyGatherersBoonChance)
-            {
-                gatherersBoonChance = 0;
-            }
-            if (newItemsPerAttempt.HasValue)
-            {
-                attemptItems = newItemsPerAttempt.Value;
-            }
-            bestResult = null;
-            IsOpen = true;
         }
         catch (Exception e)
         {
             Plugin.Log.Warning(e, "Getting gathering data failed");
         }
-    }
 
-    private unsafe void GetGatheringChance(AtkComponentCheckBox* component, ref int? newGatheringChance)
-    {
-        var node = component->GetTextNodeById(10);
-        if (node != null)
+        if (newGatheringChance.HasValue)
         {
-            var textNode = node->GetAsAtkTextNode();
-            if (textNode != null)
-            {
-                if (!(textNode->NodeText.ToString() == "" || textNode->NodeText.ToString() == "-"))
-                {
-                    var thisGatheringChance = textNode->NodeText.ToInteger();
-                    if (!newGatheringChance.HasValue || (thisGatheringChance < newGatheringChance.Value))
-                    {
-                        newGatheringChance = thisGatheringChance;
-                    }
-                }
-            }
+            gatheringChance = newGatheringChance.Value;
         }
+        if (newGatherersBoonChance.HasValue)
+        {
+            gatherersBoonChance = newGatherersBoonChance.Value;
+        }
+        else if (emptyGatherersBoonChance)
+        {
+            gatherersBoonChance = 0;
+        }
+        yield = newYield;
+
+        bestResult = null;
+        if (plugin.Configuration.AutoOpenOnGather)
+        {
+            IsOpen = true;
+        }
+
     }
 
-    private unsafe void GetGatherersBoonChance(AtkComponentCheckBox* component, ref int? newGatherersBoonChance, ref bool emptyGatherersBoonChance)
+    private delegate void TextNodeAction(Utf8String textNode);
+    private unsafe void GetTextNode(AtkComponentCheckBox* component, uint id, TextNodeAction action)
     {
-        var node = component->GetTextNodeById(16);
+        var node = component->GetTextNodeById(id);
         if (node != null)
         {
             var textNode = node->GetAsAtkTextNode();
             if (textNode != null)
             {
-                if (textNode->NodeText.ToString() == "-")
-                {
-                    emptyGatherersBoonChance = true;
-                }
-                else if (textNode->NodeText.ToString() != "")
-                {
-                    var thisGatherersBoonChance = textNode->NodeText.ToInteger();
-                    if (!newGatherersBoonChance.HasValue || (thisGatherersBoonChance < newGatherersBoonChance.Value))
-                    {
-                        newGatherersBoonChance = thisGatherersBoonChance;
-                    }
-                }
+                action(textNode->NodeText);
             }
         }
     }
@@ -314,13 +315,13 @@ public class MainWindow : Window, IDisposable
 
     private int maxGP;
     private int currentGP;
-    private int attempts = 6;
-    private int attemptItems = 1;
+    private int integrity = 6;
+    private int yield = 1;
     private int gatheringChance = 100;
     private int gatherersBoonChance = 30;
     private int bountifulYieldItems = 2;
 
-    private bool opened = false;
+    private bool gatherWindowJustOpened = false;
 
     private GatheringResult? bestResult = null;
     private BestResultSelector bestResultSelector = BestResultSelector.BEST_AVG;

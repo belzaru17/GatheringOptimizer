@@ -240,7 +240,6 @@ internal sealed class IncreaseAttemptItemsIIAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        // FIXME: override buffs
         return base.CanExecute(state) &&
             !(state.Buffs.Contains(IncreasedAttemptItemsBuff.Instance) || state.Buffs.Contains(IncreasedAttemptItemsIIBuff.Instance));
     }

@@ -19,6 +19,6 @@ internal interface IBuff
 
     bool ExtraAttemptProc { get; }
 
-    int AttemptExtraItems { get; }
+    int ExtraYield { get; }
     bool BountifulYield { get; }
 }

@@ -9,7 +9,6 @@ namespace GatheringOptimizer.Algorithm;
 internal abstract class BaseBuff : IBuff
 {
     public abstract string DebugName { get; }
-
     public virtual bool Ephemeral => false;
 
     public virtual double GatheringBonus => 0;
@@ -19,14 +18,13 @@ internal abstract class BaseBuff : IBuff
 
     public virtual bool ExtraAttemptProc => false;
 
-    public virtual int AttemptExtraItems => 0;
+    public virtual int ExtraYield => 0;
     public virtual bool BountifulYield => false;
 }
 
 internal sealed class IncreasedGatheringChanceBuff : BaseBuff
 {
     public override string DebugName => "Increased Gathering Chance";
-
     public override double GatheringBonus => 0.05;
 
     public static IncreasedGatheringChanceBuff Instance => instance.Value;
@@ -99,7 +97,7 @@ internal sealed class IncreasedBoonItemsBuff : BaseBuff
 internal sealed class IncreasedAttemptItemsBuff : BaseBuff
 {
     public override string DebugName => "Increased Attempt Items";
-    public override int AttemptExtraItems => 1;
+    public override int ExtraYield => 1;
 
     public static IncreasedAttemptItemsBuff Instance => instance.Value;
 
@@ -111,7 +109,7 @@ internal sealed class IncreasedAttemptItemsBuff : BaseBuff
 internal sealed class IncreasedAttemptItemsIIBuff : BaseBuff
 {
     public override string DebugName => "Increased Attempt Items II";
-    public override int AttemptExtraItems => 2;
+    public override int ExtraYield => 2;
 
     public static IncreasedAttemptItemsIIBuff Instance => instance.Value;
 

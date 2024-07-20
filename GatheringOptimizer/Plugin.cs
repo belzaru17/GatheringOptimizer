@@ -36,9 +36,6 @@ public class Plugin : IDalamudPlugin
     public static ITextureProvider TextureProvider { get; private set; } = null!;
 
     [PluginService]
-    public static IGameGui GameGui { get; private set; } = null!;
-
-    [PluginService]
     public static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
 
     private ConfigWindow ConfigWindow { get; init; }
