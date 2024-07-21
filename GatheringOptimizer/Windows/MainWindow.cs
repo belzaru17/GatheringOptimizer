@@ -316,7 +316,9 @@ public class MainWindow : Window, IDisposable
             if (target != null && target->ObjectKind == ObjectKind.GatheringPoint)
             {
                 var name = target->NameString;
-                return name.Contains("Legendary") || name.Contains("Unspoiled")  || name.Contains("Ephemeral");
+                return ((plugin.Configuration.AutoOpenOnLegendaryGather && name.Contains("Legendary")) ||
+                        (plugin.Configuration.AutoOpenOnUnspoiledGather && name.Contains("Unspoiled")) ||
+                        (plugin.Configuration.AutoOpenOnEphemeralGather && name.Contains("Ephemeral")));
             }
         }
 
