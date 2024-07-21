@@ -37,12 +37,33 @@ public class ConfigWindow : Window, IDisposable
             saveConfig = true;
         }
 
-        bool autoOpenOnGather = plugin.Configuration.AutoOpenOnGather;
-        if (ImGui.Checkbox("Auto Open on Gather", ref autoOpenOnGather))
+        ImGui.Spacing();
+        bool autoOpenOnAnyGather = plugin.Configuration.AutoOpenOnAnyGather;
+        if (ImGui.Checkbox("Auto Open on Gather Any Node", ref autoOpenOnAnyGather))
         {
-            plugin.Configuration.AutoOpenOnGather = autoOpenOnGather;
+            plugin.Configuration.AutoOpenOnAnyGather = autoOpenOnAnyGather;
             saveConfig = true;
         }
+        if (autoOpenOnAnyGather) ImGui.BeginDisabled();
+        bool autoOpenOnLegendaryGather = plugin.Configuration.AutoOpenOnLegendaryGather;
+        if (ImGui.Checkbox("Auto Open of Gather Legendary Nodes", ref autoOpenOnLegendaryGather))
+        {
+            plugin.Configuration.AutoOpenOnLegendaryGather = autoOpenOnLegendaryGather;
+            saveConfig = true;
+        }
+        bool autoOpenOnUnspoiledGather = plugin.Configuration.AutoOpenOnUnspoiledGather;
+        if (ImGui.Checkbox("Auto Open of Gather Unspoiled Nodes", ref autoOpenOnUnspoiledGather))
+        {
+            plugin.Configuration.AutoOpenOnUnspoiledGather = autoOpenOnUnspoiledGather;
+            saveConfig = true;
+        }
+        bool autoOpenOnEphemeralGather = plugin.Configuration.AutoOpenOnEphemeralGather;
+        if (ImGui.Checkbox("Auto Open of Gather Ephemeeral Nodes", ref autoOpenOnEphemeralGather))
+        {
+            plugin.Configuration.AutoOpenOnEphemeralGather = autoOpenOnEphemeralGather;
+            saveConfig = true;
+        }
+        if (autoOpenOnAnyGather) ImGui.EndDisabled();
 
         ImGui.Spacing();
         ImGui.Separator();

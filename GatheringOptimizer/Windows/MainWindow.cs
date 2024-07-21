@@ -2,6 +2,8 @@ using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -296,11 +298,29 @@ public class MainWindow : Window, IDisposable
         yield = newYield;
 
         bestResult = null;
-        if (plugin.Configuration.AutoOpenOnGather)
+        if (!IsOpen && ShouldAutoOpen())
         {
             IsOpen = true;
         }
 
+    }
+
+    private unsafe bool ShouldAutoOpen()
+    {
+        if (plugin.Configuration.AutoOpenOnAnyGather) return true;
+
+        var targetSystem = TargetSystem.Instance();
+        if (targetSystem != null)
+        {
+            var target = targetSystem->GetTargetObject();
+            if (target != null && target->ObjectKind == ObjectKind.GatheringPoint)
+            {
+                var name = target->NameString;
+                return name.Contains("Legendary") || name.Contains("Unspoiled")  || name.Contains("Ephemeral");
+            }
+        }
+
+        return false;
     }
 
     private delegate void TextNodeAction(Utf8String textNode);
