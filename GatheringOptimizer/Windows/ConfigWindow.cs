@@ -30,14 +30,6 @@ public class ConfigWindow : Window, IDisposable
     {
         var saveConfig = false;
 
-        int maxGP = plugin.Configuration.MaxGP;
-        if (ImGui.InputInt("Max GP", ref maxGP))
-        {
-            plugin.Configuration.MaxGP = maxGP;
-            saveConfig = true;
-        }
-
-        ImGui.Spacing();
         bool autoOpenOnAnyGather = plugin.Configuration.AutoOpenOnAnyGather;
         if (ImGui.Checkbox("Auto Open on Gather Any Node", ref autoOpenOnAnyGather))
         {

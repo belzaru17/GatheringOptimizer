@@ -9,8 +9,6 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
 
-    public int MaxGP { get; set; } = 800;
-
     public bool AutoOpenOnAnyGather { get; set; } = false;
     public bool AutoOpenOnLegendaryGather { get; set; } = true;
     public bool AutoOpenOnUnspoiledGather { get; set; } = true;
