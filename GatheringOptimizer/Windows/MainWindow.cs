@@ -30,6 +30,7 @@ public class MainWindow : Window, IDisposable
         {
             Plugin.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, pane.AddonName, (eveneType, eventArgs) => AddonSetupHandler(eveneType, eventArgs, pane));
             Plugin.AddonLifecycle.RegisterListener(AddonEvent.PostRefresh, pane.AddonName, AddonUpdateHandler);
+            Plugin.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, pane.AddonName, AddonUpdateHandler);
         }
     }
 
@@ -37,6 +38,7 @@ public class MainWindow : Window, IDisposable
     {
         foreach (var pane in panes)
         {
+            Plugin.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, pane.AddonName);
             Plugin.AddonLifecycle.UnregisterListener(AddonEvent.PostRefresh, pane.AddonName);
             Plugin.AddonLifecycle.UnregisterListener(AddonEvent.PostSetup, pane.AddonName);
         }

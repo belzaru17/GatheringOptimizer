@@ -3,7 +3,6 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Textures;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using GatheringOptimizer.Algorithm;
@@ -28,10 +27,10 @@ internal class GatheringPane : IPane
         bool changed = false;
 
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("##CurrentGP", ref maxGP);
+        changed |= ImGui.InputInt("##CurrentGP", ref currentGP);
         ImGui.SameLine(); ImGui.Text("/"); ImGui.SameLine();
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("GP##MaxGP", ref currentGP);
+        changed |= ImGui.InputInt("GP##MaxGP", ref maxGP);
         if (currentGP > maxGP)
         {
             currentGP = maxGP;
@@ -48,7 +47,6 @@ internal class GatheringPane : IPane
         ImGui.Spacing();
         ImGui.SetNextItemWidth(100);
         changed |= ImGui.InputInt("Bountiful Yield (# items) [manual]", ref bountifulYieldItems);
-        ImGui.SetNextItemWidth(100);
         ImGui.Spacing();
         ImGui.Separator();
 
@@ -91,6 +89,8 @@ internal class GatheringPane : IPane
 
     public unsafe bool UpdateFromAddon(AddonEvent type, AddonArgs args)
     {
+        if (type == AddonEvent.PostUpdate) return false;
+
         if (Plugin.ClientState.LocalPlayer != null)
         {
             maxGP = ((int?)Plugin.ClientState.LocalPlayer?.MaxGp) ?? maxGP;
@@ -105,15 +105,10 @@ internal class GatheringPane : IPane
         try
         {
             var addon = (AddonGathering*)args.Addon;
-            if (addon == null)
-            {
-                return false;
-            }
+            if (addon == null) return false;
 
-            if (addon->IntegrityTotal != null)
-            {
-                integrity = addon->IntegrityTotal->NodeText.ToInteger();
-            }
+            if (addon->IntegrityTotal == null) return false;
+            integrity = addon->IntegrityTotal->NodeText.ToInteger();
 
             AtkComponentCheckBox*[] gatherComponents = {
                 addon->GatheredItemComponentCheckBox1,
@@ -127,7 +122,7 @@ internal class GatheringPane : IPane
             };
             foreach (var component in gatherComponents)
             {
-                GetTextNode(component, 10, (value) =>
+                AddonUtils.GetTextNode(component, 10, (value) =>
                 {
                     if (!(value.ToString() == "" || value.ToString() == "-"))
                     {
@@ -138,7 +133,7 @@ internal class GatheringPane : IPane
                         }
                     }
                 });
-                GetTextNode(component, 16, (value) =>
+                AddonUtils.GetTextNode(component, 16, (value) =>
                 {
                     if (value.ToString() == "-")
                     {
@@ -259,25 +254,7 @@ internal class GatheringPane : IPane
         }
     }
 
-    private delegate void TextNodeAction(Utf8String textNode);
-    private unsafe void GetTextNode(AtkComponentCheckBox* component, uint id, TextNodeAction action)
-    {
-        if (component == null)
-        {
-            return;
-        }
-        var node = component->GetTextNodeById(id);
-        if (node != null)
-        {
-            var textNode = node->GetAsAtkTextNode();
-            if (textNode != null)
-            {
-                action(textNode->NodeText);
-            }
-        }
-    }
-
-    private unsafe int? GetYieldItems(AtkComponentCheckBox* component)
+    private static unsafe int? GetYieldItems(AtkComponentCheckBox* component)
     {
         if (component == null) return null;
 
@@ -304,5 +281,4 @@ internal class GatheringPane : IPane
 
     private GatheringResult? bestResult = null;
     private BestResultSelector bestResultSelector = BestResultSelector.BEST_AVG;
-
 }

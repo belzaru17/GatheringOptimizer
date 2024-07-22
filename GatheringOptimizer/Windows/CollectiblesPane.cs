@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
 namespace GatheringOptimizer.Windows;
@@ -11,7 +12,7 @@ internal class CollectiblesPane : IPane
 
     public void DrawPane()
     {
-        ImGui.Text("Gathering collectible -- coming soon!");
+        ImGui.Text("Coming soon!");
     }
 
     public void SetupFromAddon(AddonEvent type, AddonArgs args)
@@ -25,6 +26,24 @@ internal class CollectiblesPane : IPane
 
     public bool UpdateFromAddon(AddonEvent type, AddonArgs args)
     {
+        if (Plugin.ClientState.LocalPlayer != null)
+        {
+            uint currentGP = Plugin.ClientState.LocalPlayer.CurrentGp;
+        }
+
         return true;
+    }
+
+    private unsafe void Debug()
+    {
+        var addon = (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
+        if (addon == null)
+        {
+            Plugin.Log.Information("addon is null");
+            return;
+        }
+        Plugin.Log.Information($"Integrity: {addon->IntegrityLeftover->NodeText}");
+        var text = AddonUtils.GetTextNode(addon->GetTextNodeById(47));
+        Plugin.Log.Information($"Collectability: {text}");
     }
 }
