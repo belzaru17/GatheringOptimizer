@@ -16,7 +16,7 @@ public class MainWindow : Window, IDisposable
         this.plugin = plugin;
 
         var gatheringPane = new GatheringPane(plugin);
-        var collectiblesPane = new CollectiblesPane();
+        var collectiblesPane = new CollectablesPane();
         currentPane = gatheringPane;
         panes = [gatheringPane, collectiblesPane];
 

@@ -1,7 +1,12 @@
 ﻿using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Interface.Textures;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using GatheringOptimizer.Algorithm;
 using ImGuiNET;
+using System;
+using System.Collections.Immutable;
+using System.Numerics;
 
 namespace GatheringOptimizer.Windows;
 
@@ -10,10 +15,81 @@ internal class CollectablesPane : IPane
     public string AddonName => "GatheringMasterpiece";
     public string Title => "Collectables";
 
-    public void DrawPane()
+    public unsafe void DrawPane()
     {
-        ImGui.Text("Coming soon!");
+        var addon = GetAddon();
+        if (addon != null && addon->IsFullyLoaded())
+        {
+            UpdateFromCurrentState(addon);
+        }
+
+        if (ImGui.BeginCombo("Rotation", rotations[currentRotation].Title))
+        {
+            for (int i = 0; i < rotations.Length; i++)
+            {
+                if (ImGui.Selectable(rotations[i].Title))
+                {
+                    currentRotation = i;
+                    currentIntegrity = 4;
+                    maxIntegrity = 4;
+                    currentStep = 0;
+                    currentBuff = null;
+                    eurekaBuff = false;
+                }
+            }
+            ImGui.EndCombo();
+        }
+        ImGui.Spacing();
+        ImGui.Separator();
+
+        if (addon != null && addon->IsFullyLoaded()) ImGui.BeginDisabled();
+        ImGui.SetNextItemWidth(100);
         ImGui.InputInt("GP", ref currentGP);
+        ImGui.SetNextItemWidth(100);
+        ImGui.InputInt("##CurrentIntegrity", ref currentIntegrity);
+        ImGui.SameLine(); ImGui.Text("/"); ImGui.SameLine();
+        ImGui.InputInt("Integrity", ref maxIntegrity);
+        ImGui.SetNextItemWidth(100);
+        ImGui.InputInt("Collectability", ref currentCollectability);
+
+        string[] buffValues = ["None", "Collector's Standard", "Collector's High Standard"];
+        int newCurrentBuff = (currentBuff == null)? 0 : ((currentBuff == CollectableBuffs.CollectorsStandard)? 1 : 2);
+        if (ImGui.Combo("Buffs", ref newCurrentBuff, buffValues, 3))
+        {
+            switch (newCurrentBuff)
+            {
+                case 1:
+                    currentBuff = CollectableBuffs.CollectorsStandard; break;
+                case 2:
+                    currentBuff = CollectableBuffs.CollectorsHighStandard; break;
+                default:
+                    currentBuff = null; break;
+            }
+        }
+        if (addon != null && addon->IsFullyLoaded()) ImGui.EndDisabled();
+        ImGui.Spacing();
+        ImGui.Separator();
+
+        var (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
+        var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(AddonUtils.IsBotanist() ? nextAction.IconId_BOTANIST : nextAction.IconId_MINER));
+        ImGui.InputInt("Step", ref currentStep);
+        ImGui.Spacing();
+
+        var midX = ImGui.GetWindowContentRegionMax().X  / 2;
+        ImGui.SetCursorPosX(midX - 24);
+        if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)))
+        {
+            currentStep = nextStep;
+            currentGP -= nextAction.GP;
+            if (nextAction.Buff == null)
+            {
+                currentBuff = null;
+            }
+        }
+        ImGui.Spacing();
+        var actionName = AddonUtils.IsBotanist() ? nextAction.Name_BOTANIST : nextAction.Name_MINER;
+        ImGui.SetCursorPosX(midX - ImGui.CalcTextSize(actionName).X / 2);
+        ImGui.Text(actionName);
     }
 
     public void SetupFromAddon(AddonEvent type, AddonArgs args)
@@ -25,28 +101,92 @@ internal class CollectablesPane : IPane
         return true;
     }
 
-    public bool UpdateFromAddon(AddonEvent type, AddonArgs args)
+    public unsafe bool UpdateFromAddon(AddonEvent type, AddonArgs args)
     {
         if (Plugin.ClientState.LocalPlayer != null)
         {
+            bool leveling = Plugin.ClientState.LocalPlayer.Level < 100;
             currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
+            for (int i = rotations.Length - 1; i >= 0 ; i--)
+            {
+                var rotation = rotations[i];
+                if (((leveling == rotation.Leveling) || rotation.MinGP == 0) && currentGP >= rotation.MinGP)
+                {
+                    currentRotation = i;
+                    break;
+                }
+            }
+            currentStep = 0;
         }
+        currentCollectability = 0;
+        currentBuff = null;
+        eurekaBuff = false;
+
+        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon);
 
         return true;
     }
 
-    private unsafe void Debug()
+    private unsafe AddonGatheringMasterpiece* GetAddon()
     {
-        var addon = (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
-        if (addon == null)
-        {
-            Plugin.Log.Information("addon is null");
-            return;
-        }
-        Plugin.Log.Information($"Integrity: {addon->IntegrityLeftover->NodeText}");
-        var text = AddonUtils.GetTextNode(addon->GetTextNodeById(47));
-        Plugin.Log.Information($"Collectability: {text}");
+        return (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
     }
 
-    private int currentGP;
+    private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon)
+    {
+        if (Plugin.ClientState.LocalPlayer != null)
+        {
+            currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
+
+            var statusList = Plugin.ClientState.LocalPlayer.StatusList;
+            CollectableBuff? buffFound = null;
+            for (var i = 0; i < statusList.Length; i++)
+            {
+                var buff = statusList[i];
+                if (buff?.StatusId == CollectableBuffs.CollectorsStandard.StatusId)
+                {
+                    buffFound = CollectableBuffs.CollectorsStandard;
+                }
+                else if (buff?.StatusId == CollectableBuffs.CollectorsHighStandard.StatusId)
+                {
+                    buffFound = CollectableBuffs.CollectorsHighStandard;
+                }
+                else if (buff?.StatusId == CollectableBuffs.Eureka.StatusId)
+                {
+                    eurekaBuff = true;
+                }
+            }
+            currentBuff = buffFound;
+        }
+
+        if (addon != null)
+        {
+            var newItegrity = addon->IntegrityLeftover->NodeText;
+            if (newItegrity.ToString().Length > 0) currentIntegrity = newItegrity.ToInteger();
+            var newMaxItegrity = addon->IntegrityTotal->NodeText;
+            if (newMaxItegrity.ToString().Length > 0) maxIntegrity = newMaxItegrity.ToInteger();
+            var newCollectability = AddonUtils.GetTextNode(addon->GetTextNodeById(47));
+            if(newCollectability?.ToString().Length > 0 && !(newCollectability?.ToString().Contains("-") ?? false)) currentCollectability = newCollectability?.ToInteger() ?? 0;
+        }
+    }
+
+    static CollectablesPane() {
+        rotations = [
+            new Rotation_0GP(),
+            new Rotation_400GP(), new Rotation_700GP(),
+            new Rotation_600_800GP(), new Rotation_800_900GP(), new Rotation_1000GP(),
+        ];
+    }
+
+    private static readonly ImmutableArray<ICollectableRotation> rotations;
+
+    private int currentRotation = 0;
+    private int currentStep = 0;
+
+    private int currentGP = 800;
+    private int maxIntegrity = 4;
+    private int currentIntegrity = 4;
+    private int currentCollectability = 0;
+    private CollectableBuff? currentBuff = null;
+    private bool eurekaBuff = false;
 }

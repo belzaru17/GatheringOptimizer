@@ -15,7 +15,7 @@ internal static class Optimizer
         return RecursiveGenerateBestResult(parameters, comparer, initialResult, 0);
     }
 
-    private static readonly ImmutableArray<IAction> NON_GATHER_ACTIONS = new IAction[] {
+    private static readonly ImmutableArray<IGatheringAction> NON_GATHER_ACTIONS = new IGatheringAction[] {
         IncreaseGatheringChanceAction.Instance,
         IncreaseGatheringChanceIIAction.Instance,
         IncreaseGatheringChanceIIIAction.Instance,

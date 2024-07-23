@@ -211,11 +211,6 @@ internal class GatheringPane : IPane
         return new GatheringParameters(currentGP, integrity, gatheringChance / 100.0, gatherersBoonChance / 100.0, yield, bountifulYieldItems);
     }
 
-    private static bool IsBotanist()
-    {
-        return Plugin.ClientState.LocalPlayer?.ClassJob.Id == 17;
-    }
-
     private void DrawTopResult(GatheringResult? result)
     {
         if (result == null)
@@ -233,7 +228,7 @@ internal class GatheringPane : IPane
             ImGui.Text("Actions");
             foreach (var action in result.Actions)
             {
-                if (IsBotanist())
+                if (AddonUtils.IsBotanist())
                 {
                     var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(action.IconId_BOTANIST));
 

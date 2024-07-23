@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace GatheringOptimizer.Algorithm;
 
-internal record GatheringResult(double Min, double Avg, double Max, ImmutableArray<IAction> Actions, GatheringState State)
+internal record GatheringResult(double Min, double Avg, double Max, ImmutableArray<IGatheringAction> Actions, GatheringState State)
 {
-    public GatheringResult ExecuteAction(IAction action)
+    public GatheringResult ExecuteAction(IGatheringAction action)
     {
         ActionResult actionResult = action.Execute(State);
 

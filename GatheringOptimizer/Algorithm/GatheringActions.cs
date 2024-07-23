@@ -2,7 +2,7 @@
 
 namespace GatheringOptimizer.Algorithm;
 
-internal sealed class GatherAction : IAction
+internal sealed class GatherAction : IGatheringAction
 {
     public string Name_MINER => "Gather";
     public string Name_BOTANIST => "Gather";
@@ -26,7 +26,7 @@ internal sealed class GatherAction : IAction
     private GatherAction() { }
 }
 
-internal abstract class BaseBuffAction : IAction
+internal abstract class BaseBuffAction : IGatheringAction
 {
     public abstract string Name_MINER { get; }
     public abstract string Name_BOTANIST { get; }

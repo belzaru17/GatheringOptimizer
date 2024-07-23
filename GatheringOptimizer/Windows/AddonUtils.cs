@@ -31,4 +31,9 @@ internal static class AddonUtils
     {
         return (textNode == null) ? null : textNode->NodeText;
     }
+
+    public static bool IsBotanist()
+    {
+        return Plugin.ClientState.LocalPlayer?.ClassJob.Id == 17;
+    }
 }
