@@ -20,8 +20,7 @@ internal class CollectablesPane : IPane
         var addon = GetAddon();
         if (addon != null && addon->IsFullyLoaded())
         {
-            UpdateFromCurrentState(addon, updateGP);
-            updateGP = false;
+            UpdateFromCurrentState(addon);
         }
 
         ImGui.SetNextItemWidth(200);
@@ -31,13 +30,7 @@ internal class CollectablesPane : IPane
             {
                 if (ImGui.Selectable(rotations[i].Title))
                 {
-                    currentRotation = i;
-                    currentIntegrity = 4;
-                    maxIntegrity = 4;
-                    currentStep = 0;
-                    currentBuff = null;
-                    eurekaBuff = false;
-                    updateGP = true;
+                    Reset();
                 }
             }
             ImGui.EndCombo();
@@ -57,7 +50,7 @@ internal class CollectablesPane : IPane
         ImGui.InputInt("Collectability", ref currentCollectability);
 
         string[] buffValues = ["None", "Collector's Standard", "Collector's High Standard"];
-        int newCurrentBuff = (currentBuff == null)? 0 : ((currentBuff == CollectableBuffs.CollectorsStandard)? 1 : 2);
+        int newCurrentBuff = (currentBuff == null) ? 0 : ((currentBuff == CollectableBuffs.CollectorsStandard) ? 1 : 2);
         ImGui.SetNextItemWidth(200);
         if (ImGui.Combo("Buffs", ref newCurrentBuff, buffValues, 3))
         {
@@ -77,27 +70,26 @@ internal class CollectablesPane : IPane
         ImGui.Spacing();
         ImGui.Separator();
 
-        var (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
+        if (advanceToNextStep || nextAction == null)
+        {
+            currentStep = (nextAction == null)?  0 : nextStep;
+            advanceToNextStep = false;
+        }
+        (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
         var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(AddonUtils.IsBotanist() ? nextAction.IconId_BOTANIST : nextAction.IconId_MINER));
         ImGui.SetNextItemWidth(100);
         ImGui.InputInt("Step", ref currentStep);
         ImGui.Spacing();
 
-        var midX = ImGui.GetWindowContentRegionMax().X  / 2;
-        ImGui.SetCursorPosX(midX - 24);
+        var region = ImGui.GetWindowContentRegionMax();
+        ImGui.SetCursorPos(new Vector2(region.X / 2 - 24, region.Y/2 - 24));
         if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)))
         {
-            currentStep = nextStep;
-            currentGP -= nextAction.GP;
-            if (nextAction.Buff == null)
-            {
-                currentBuff = null;
-            }
-            updateGP = true;
+            advanceToNextStep = true;
         }
         ImGui.Spacing();
         var actionName = AddonUtils.IsBotanist() ? nextAction.Name_BOTANIST : nextAction.Name_MINER;
-        ImGui.SetCursorPosX(midX - ImGui.CalcTextSize(actionName).X / 2);
+        ImGui.SetCursorPosX((region.X - ImGui.CalcTextSize(actionName).X) / 2);
         ImGui.Text(actionName);
     }
 
@@ -112,11 +104,12 @@ internal class CollectablesPane : IPane
 
     public unsafe bool UpdateFromAddon(AddonEvent type, AddonArgs args)
     {
+        Reset();
         if (Plugin.ClientState.LocalPlayer != null)
         {
             bool leveling = Plugin.ClientState.LocalPlayer.Level < 100;
             currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
-            for (int i = rotations.Length - 1; i >= 0 ; i--)
+            for (int i = rotations.Length - 1; i >= 0; i--)
             {
                 var rotation = rotations[i];
                 if (((leveling == rotation.Leveling) || rotation.MinGP == 0) && currentGP >= rotation.MinGP)
@@ -125,28 +118,50 @@ internal class CollectablesPane : IPane
                     break;
                 }
             }
-            currentStep = 0;
         }
-        currentCollectability = 0;
-        currentBuff = null;
-        eurekaBuff = false;
-        updateGP = true;
 
-        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon, true);
+        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon);
 
         return true;
     }
 
-    private unsafe AddonGatheringMasterpiece* GetAddon()
+    public void OnActionUsed(int actionId)
+    {
+        if (actionId == (AddonUtils.IsBotanist()? nextAction?.ActionId_BOTANIST : nextAction?.ActionId_MINER)) advanceToNextStep = true;
+    }
+
+    public void OnActorControl(uint type)
+    {
+        if (type == 308 /* Progress */ || type == 43 /* Collect */)
+        {
+            if ((AddonUtils.IsBotanist() ? nextAction?.ActionId_BOTANIST : nextAction?.ActionId_MINER) == 0) advanceToNextStep = true;
+        }
+    }
+
+    private void Reset()
+    {
+        currentStep = 0;
+        currentGP = 800;
+        currentCollectability = 0;
+        currentBuff = null;
+        eurekaBuff = false;
+        advanceToNextStep = false;
+        nextAction = null;
+        nextStep = 0;
+        maxIntegrity = currentIntegrity = 4;
+    }
+
+
+private unsafe AddonGatheringMasterpiece* GetAddon()
     {
         return (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
     }
 
-    private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon, bool updateCurrentGP)
+    private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon)
     {
         if (Plugin.ClientState.LocalPlayer != null)
         {
-            if (updateCurrentGP) currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
+            currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
 
             var statusList = Plugin.ClientState.LocalPlayer.StatusList;
             eurekaBuff = false;
@@ -194,11 +209,14 @@ internal class CollectablesPane : IPane
     private int currentRotation = 0;
     private int currentStep = 0;
 
-    private bool updateGP = true;
     private int currentGP = 800;
     private int maxIntegrity = 4;
     private int currentIntegrity = 4;
     private int currentCollectability = 0;
     private CollectableBuff? currentBuff = null;
     private bool eurekaBuff = false;
+
+    private ICollectableAction? nextAction = null;
+    private int nextStep;
+    private bool advanceToNextStep = false;
 }

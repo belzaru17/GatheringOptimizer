@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using System;
 
 namespace GatheringOptimizer.Windows;
 
@@ -12,4 +13,7 @@ internal interface IPane
     void SetupFromAddon(AddonEvent type, AddonArgs args);
     bool ShouldAutoOpen();
     bool UpdateFromAddon(AddonEvent type, AddonArgs args);
+
+    void OnActionUsed(int actionId);
+    void OnActorControl(uint type);
 }

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GatheringOptimizer.Algorithm;
+﻿namespace GatheringOptimizer.Algorithm;
 
 internal interface ICollectableAction : IAction
 {
+    int ActionId_MINER { get; }
+    int ActionId_BOTANIST { get; }
+
     CollectableBuff? Buff { get; }
 }
 

@@ -1,10 +1,10 @@
 using Dalamud.Game.Command;
+using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Services;
 using GatheringOptimizer.Windows;
 using System;
-using Dalamud.Plugin.Services;
 
 namespace GatheringOptimizer;
 
@@ -40,6 +40,9 @@ public class Plugin : IDalamudPlugin
 
     [PluginService]
     public static IGameGui GameGui { get; private set; } = null!;
+
+    [PluginService]
+    public static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
 
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }

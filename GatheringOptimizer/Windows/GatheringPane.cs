@@ -198,6 +198,10 @@ internal class GatheringPane : IPane
         return false;
     }
 
+    public void OnActionUsed(int actionId) { }
+
+    public void OnActorControl(uint type) { }
+
 
     private enum BestResultSelector
     {

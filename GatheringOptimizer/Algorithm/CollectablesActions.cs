@@ -18,6 +18,8 @@ internal static class CollectableBuffs
 internal class ScourAction : ICollectableAction
 {
     public int GP => 0;
+    public int ActionId_MINER => 0;
+    public int ActionId_BOTANIST => 0;
     public CollectableBuff? Buff => null;
 
     public string Name_MINER => "Scour";
@@ -37,6 +39,8 @@ internal class ScourAction : ICollectableAction
 internal class BrazenProspectorAction : ICollectableAction
 {
     public int GP => 0;
+    public int ActionId_MINER => 0;
+    public int ActionId_BOTANIST => 0;
     public CollectableBuff? Buff => null;
 
     public string Name_MINER => "Brazen Prospector";
@@ -56,6 +60,8 @@ internal class BrazenProspectorAction : ICollectableAction
 internal class MeticulousProspectorAction : ICollectableAction
 {
     public int GP => 0;
+    public int ActionId_MINER => 0;
+    public int ActionId_BOTANIST => 0;
     public CollectableBuff? Buff => null;
 
     public string Name_MINER => "Meticulous Prospector";
@@ -75,6 +81,8 @@ internal class MeticulousProspectorAction : ICollectableAction
 internal class CollectAction : ICollectableAction
 {
     public int GP => 0;
+    public int ActionId_MINER => 0;
+    public int ActionId_BOTANIST => 0;
     public CollectableBuff? Buff => null;
 
     public string Name_MINER => "Collect";
@@ -94,6 +102,8 @@ internal class CollectAction : ICollectableAction
 internal class ScrutinyAction : ICollectableAction
 {
     public int GP => 200;
+    public int ActionId_MINER => 22185;
+    public int ActionId_BOTANIST => 22189;
     public CollectableBuff? Buff => CollectableBuffs.Scrutiny;
 
     public string Name_MINER => "Scrutiny";
@@ -113,6 +123,8 @@ internal class ScrutinyAction : ICollectableAction
 internal class CollectorsFocusAction : ICollectableAction
 {
     public int GP => 100;
+    public int ActionId_MINER => 21205;
+    public int ActionId_BOTANIST => 21206;
     public CollectableBuff? Buff => CollectableBuffs.CollectorsFocus;
 
     public string Name_MINER => "Collector's Focus";
@@ -132,6 +144,8 @@ internal class CollectorsFocusAction : ICollectableAction
 internal class PrimingTouchAction : ICollectableAction
 {
     public int GP => 100;
+    public int ActionId_MINER => 34871;
+    public int ActionId_BOTANIST => 34872;
     public CollectableBuff? Buff => CollectableBuffs.PrimingTouch;
 
     public string Name_MINER => "Priming Touch";
@@ -151,6 +165,8 @@ internal class PrimingTouchAction : ICollectableAction
 internal class IncreaseCollectableIntegrityAction : ICollectableAction
 {
     public int GP => 300;
+    public int ActionId_MINER => 232;
+    public int ActionId_BOTANIST => 215;
     public CollectableBuff? Buff => CollectableBuffs.Eureka;
 
     public string Name_MINER => "Solid Reason";
@@ -169,6 +185,8 @@ internal class IncreaseCollectableIntegrityAction : ICollectableAction
 internal class CollectableEurekaAction : ICollectableAction
 {
     public int GP => 0;
+    public int ActionId_MINER => 26521;
+    public int ActionId_BOTANIST => 26522;
     public CollectableBuff? Buff => CollectableBuffs.Eureka;
 
     public string Name_MINER => "Wise to the World";

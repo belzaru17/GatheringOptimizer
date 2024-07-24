@@ -19,7 +19,7 @@ internal abstract class BaseCollectableRotation : ICollectableRotation
                     return new(step + 1, CollectableEurekaAction.Instance);
                 }
 
-                if (currentGP >= IncreaseAttemptsAction.Instance.GP && integrity < maxIntegrity)
+                if (currentGP >= IncreaseCollectableIntegrityAction.Instance.GP && integrity < maxIntegrity)
                 {
                     return new(step + 1, IncreaseCollectableIntegrityAction.Instance);
                 }
