@@ -191,8 +191,12 @@ private unsafe AddonGatheringMasterpiece* GetAddon()
             if (newItegrity.ToString().Length > 0) currentIntegrity = newItegrity.ToInteger();
             var newMaxItegrity = addon->IntegrityTotal->NodeText;
             if (newMaxItegrity.ToString().Length > 0) maxIntegrity = newMaxItegrity.ToInteger();
-            var newCollectability = AddonUtils.GetTextNode(addon->GetTextNodeById(47));
-            if(newCollectability?.ToString().Length > 0 && !(newCollectability?.ToString().Contains("-") ?? false)) currentCollectability = newCollectability?.ToInteger() ?? 0;
+            var integrityProgress = addon->GetImageNodeById(61);
+            if (integrityProgress == null || !integrityProgress->IsVisible())
+            {
+                var newCollectability = AddonUtils.GetTextNode(addon->GetTextNodeById(47));
+                if (newCollectability?.ToString().Length > 0 && !(newCollectability?.ToString().Contains("-") ?? false)) currentCollectability = newCollectability?.ToInteger() ?? 0;
+            }
         }
     }
 
