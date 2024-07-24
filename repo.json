@@ -2,7 +2,7 @@
   "Author": "HappySprite",
   "Name": "GatheringOptimizer",
   "InternalName": "gatheringOptimizer",
-  "AssemblyVersion": "0.4.0",
+  "AssemblyVersion": "0.4.1",
   "Punchline": "Optimize retainer gatherings.",
   "Description": "Use /vo to open UI.",
   "ApplicableVersion": "any",
@@ -15,7 +15,7 @@
   "LoadPriority": 0,
   "IconUrl": "https://raw.githubusercontent.com/belzaru17/GatheringOptimizer/master/Images/icon.png",
   "DownloadCount": 0,
-  "DownloadLinkInstall": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.4.0/GatheringOptimizer.zip",
-  "DownloadLinkTesting": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.4.0/GatheringOptimizer.zip",
-  "DownloadLinkUpdate": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.4.0/GatheringOptimizer.zip"
+  "DownloadLinkInstall": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.4.1/GatheringOptimizer.zip",
+  "DownloadLinkTesting": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.4.1/GatheringOptimizer.zip",
+  "DownloadLinkUpdate": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.4.1/GatheringOptimizer.zip"
 }]
