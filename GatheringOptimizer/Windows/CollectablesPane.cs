@@ -20,9 +20,11 @@ internal class CollectablesPane : IPane
         var addon = GetAddon();
         if (addon != null && addon->IsFullyLoaded())
         {
-            UpdateFromCurrentState(addon);
+            UpdateFromCurrentState(addon, updateGP);
+            updateGP = false;
         }
 
+        ImGui.SetNextItemWidth(200);
         if (ImGui.BeginCombo("Rotation", rotations[currentRotation].Title))
         {
             for (int i = 0; i < rotations.Length; i++)
@@ -35,6 +37,7 @@ internal class CollectablesPane : IPane
                     currentStep = 0;
                     currentBuff = null;
                     eurekaBuff = false;
+                    updateGP = true;
                 }
             }
             ImGui.EndCombo();
@@ -48,12 +51,14 @@ internal class CollectablesPane : IPane
         ImGui.SetNextItemWidth(100);
         ImGui.InputInt("##CurrentIntegrity", ref currentIntegrity);
         ImGui.SameLine(); ImGui.Text("/"); ImGui.SameLine();
+        ImGui.SetNextItemWidth(100);
         ImGui.InputInt("Integrity", ref maxIntegrity);
         ImGui.SetNextItemWidth(100);
         ImGui.InputInt("Collectability", ref currentCollectability);
 
         string[] buffValues = ["None", "Collector's Standard", "Collector's High Standard"];
         int newCurrentBuff = (currentBuff == null)? 0 : ((currentBuff == CollectableBuffs.CollectorsStandard)? 1 : 2);
+        ImGui.SetNextItemWidth(200);
         if (ImGui.Combo("Buffs", ref newCurrentBuff, buffValues, 3))
         {
             switch (newCurrentBuff)
@@ -66,12 +71,15 @@ internal class CollectablesPane : IPane
                     currentBuff = null; break;
             }
         }
+        ImGui.SetNextItemWidth(100);
+        ImGui.Checkbox("Eureka proc", ref eurekaBuff);
         if (addon != null && addon->IsFullyLoaded()) ImGui.EndDisabled();
         ImGui.Spacing();
         ImGui.Separator();
 
         var (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
         var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(AddonUtils.IsBotanist() ? nextAction.IconId_BOTANIST : nextAction.IconId_MINER));
+        ImGui.SetNextItemWidth(100);
         ImGui.InputInt("Step", ref currentStep);
         ImGui.Spacing();
 
@@ -85,6 +93,7 @@ internal class CollectablesPane : IPane
             {
                 currentBuff = null;
             }
+            updateGP = true;
         }
         ImGui.Spacing();
         var actionName = AddonUtils.IsBotanist() ? nextAction.Name_BOTANIST : nextAction.Name_MINER;
@@ -121,8 +130,9 @@ internal class CollectablesPane : IPane
         currentCollectability = 0;
         currentBuff = null;
         eurekaBuff = false;
+        updateGP = true;
 
-        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon);
+        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon, true);
 
         return true;
     }
@@ -132,13 +142,14 @@ internal class CollectablesPane : IPane
         return (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
     }
 
-    private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon)
+    private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon, bool updateCurrentGP)
     {
         if (Plugin.ClientState.LocalPlayer != null)
         {
-            currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
+            if (updateCurrentGP) currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
 
             var statusList = Plugin.ClientState.LocalPlayer.StatusList;
+            eurekaBuff = false;
             CollectableBuff? buffFound = null;
             for (var i = 0; i < statusList.Length; i++)
             {
@@ -183,6 +194,7 @@ internal class CollectablesPane : IPane
     private int currentRotation = 0;
     private int currentStep = 0;
 
+    private bool updateGP = true;
     private int currentGP = 800;
     private int maxIntegrity = 4;
     private int currentIntegrity = 4;
