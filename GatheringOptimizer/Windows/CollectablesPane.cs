@@ -70,25 +70,36 @@ internal class CollectablesPane : IPane
         ImGui.Spacing();
         ImGui.Separator();
 
-        if (advanceToNextStep || nextAction == null)
+        ISharedImmediateTexture icon;
+        string actionName;
+        if (advanceToNextStep && missingStateData)
         {
-            currentStep = (nextAction == null)?  0 : nextStep;
-            advanceToNextStep = false;
+            icon = Plugin.TextureProvider.GetFromGameIcon(38);
+            actionName = "Move your mouse off actions";
         }
-        (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
-        var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(AddonUtils.IsBotanist() ? nextAction.IconId_BOTANIST : nextAction.IconId_MINER));
+        else
+        {
+            if (advanceToNextStep || nextAction == null)
+            {
+                currentStep = (nextAction == null) ? 0 : nextStep;
+                advanceToNextStep = false;
+            }
+            (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
+            icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(AddonUtils.IsBotanist() ? nextAction.IconId_BOTANIST : nextAction.IconId_MINER));
+            actionName = AddonUtils.IsBotanist() ? nextAction.Name_BOTANIST : nextAction.Name_MINER;
+        }
+
         ImGui.SetNextItemWidth(100);
         ImGui.InputInt("Step", ref currentStep);
         ImGui.Spacing();
 
         var region = ImGui.GetWindowContentRegionMax();
         ImGui.SetCursorPos(new Vector2(region.X / 2 - 24, region.Y/2 - 24));
-        if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)))
+        if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)) && !missingStateData)
         {
             advanceToNextStep = true;
         }
         ImGui.Spacing();
-        var actionName = AddonUtils.IsBotanist() ? nextAction.Name_BOTANIST : nextAction.Name_MINER;
         ImGui.SetCursorPosX((region.X - ImGui.CalcTextSize(actionName).X) / 2);
         ImGui.Text(actionName);
     }
@@ -159,6 +170,7 @@ private unsafe AddonGatheringMasterpiece* GetAddon()
 
     private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon)
     {
+        bool newMissingStateData = false;
         if (Plugin.ClientState.LocalPlayer != null)
         {
             currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
@@ -184,6 +196,10 @@ private unsafe AddonGatheringMasterpiece* GetAddon()
             }
             currentBuff = buffFound;
         }
+        else
+        {
+            newMissingStateData = true;
+        }
 
         if (addon != null)
         {
@@ -195,9 +211,24 @@ private unsafe AddonGatheringMasterpiece* GetAddon()
             if (integrityProgress == null || !integrityProgress->IsVisible())
             {
                 var newCollectability = AddonUtils.GetTextNode(addon->GetTextNodeById(47));
-                if (newCollectability?.ToString().Length > 0 && !(newCollectability?.ToString().Contains("-") ?? false)) currentCollectability = newCollectability?.ToInteger() ?? 0;
+                if (newCollectability?.ToString().Length > 0 && !(newCollectability?.ToString().Contains("-") ?? false))
+                {
+                    currentCollectability = newCollectability?.ToInteger() ?? 0;
+                }
+                else
+                {
+                    newMissingStateData = true;
+                }
             }
+            else
+            {
+                newMissingStateData = true;
+            }
+        } else
+        {
+            newMissingStateData = true;
         }
+        missingStateData = newMissingStateData;
     }
 
     static CollectablesPane() {
@@ -223,4 +254,5 @@ private unsafe AddonGatheringMasterpiece* GetAddon()
     private ICollectableAction? nextAction = null;
     private int nextStep;
     private bool advanceToNextStep = false;
+    private bool missingStateData = false;
 }
