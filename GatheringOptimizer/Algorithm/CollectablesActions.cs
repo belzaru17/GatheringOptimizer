@@ -167,7 +167,7 @@ internal class IncreaseCollectableIntegrityAction : ICollectableAction
     public int GP => 300;
     public int ActionId_MINER => 232;
     public int ActionId_BOTANIST => 215;
-    public CollectableBuff? Buff => CollectableBuffs.Eureka;
+    public CollectableBuff? Buff => null;
 
     public string Name_MINER => "Solid Reason";
     public string Name_BOTANIST => "Ageless Words";
@@ -187,7 +187,7 @@ internal class CollectableEurekaAction : ICollectableAction
     public int GP => 0;
     public int ActionId_MINER => 26521;
     public int ActionId_BOTANIST => 26522;
-    public CollectableBuff? Buff => CollectableBuffs.Eureka;
+    public CollectableBuff? Buff => null;
 
     public string Name_MINER => "Wise to the World";
     public string Name_BOTANIST => "Wise to the World";

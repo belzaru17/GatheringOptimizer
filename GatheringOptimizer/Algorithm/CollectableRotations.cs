@@ -176,7 +176,7 @@ internal class Rotation_800_900GP : BaseCollectableRotation
             case 3:
                 if (buff == CollectableBuffs.CollectorsHighStandard)
                 {
-                    return new(7, BrazenProspectorAction.Instance);
+                    return new(8, BrazenProspectorAction.Instance);
                 }
                 else if (currentGP >= 600)
                 {
@@ -215,10 +215,39 @@ internal class Rotation_800_900GP : BaseCollectableRotation
 
 internal class Rotation_1000GP : BaseCollectableRotation
 {
-    public Rotation_1000GP() : base("1000GP", 1000, 8) { }
+    public Rotation_1000GP() : base("1000GP", 1000, 6) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
+        switch (step)
+        {
+            case 0:
+                return new(step + 1, ScrutinyAction.Instance);
+            case 1:
+                return new(step + 1, MeticulousProspectorAction.Instance);
+            case 2:
+                return new(step + 1, ScrutinyAction.Instance);
+            case 3:
+                if (buff == CollectableBuffs.CollectorsHighStandard)
+                {
+                    return new(5, BrazenProspectorAction.Instance);
+                }
+                else
+                {
+                    return new(step + 1, MeticulousProspectorAction.Instance);
+                }
+            case 4:
+                if (collectability >= 850 || (collectability == 800 && buff != null))
+                {
+                    return new(6, MeticulousProspectorAction.Instance);
+                }
+                return new(6, ScourAction.Instance);
+            case 5:
+                return new(step + 1, MeticulousProspectorAction.Instance);
+            default:
+                break;
+        }
+
         return new(step + 1, CollectAction.Instance);
     }
 }

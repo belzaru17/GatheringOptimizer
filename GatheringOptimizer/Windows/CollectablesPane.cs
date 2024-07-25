@@ -18,10 +18,8 @@ internal class CollectablesPane : IPane
     public unsafe void DrawPane()
     {
         var addon = GetAddon();
-        if (addon != null && addon->IsFullyLoaded())
-        {
-            UpdateFromCurrentState(addon);
-        }
+        var collecting = addon != null && addon->IsFullyLoaded();
+        if (collecting) UpdateFromCurrentState(addon);
 
         ImGui.SetNextItemWidth(200);
         if (ImGui.BeginCombo("Rotation", rotations[currentRotation].Title))
@@ -35,10 +33,12 @@ internal class CollectablesPane : IPane
             }
             ImGui.EndCombo();
         }
+        ImGui.SameLine();
+        ImGui.Text(collecting ? "Collecting" : "Simulating");
         ImGui.Spacing();
         ImGui.Separator();
 
-        if (addon != null && addon->IsFullyLoaded()) ImGui.BeginDisabled();
+        if (collecting) ImGui.BeginDisabled();
         ImGui.SetNextItemWidth(100);
         ImGui.InputInt("GP", ref currentGP);
         ImGui.SetNextItemWidth(100);
@@ -66,13 +66,12 @@ internal class CollectablesPane : IPane
         }
         ImGui.SetNextItemWidth(100);
         ImGui.Checkbox("Eureka proc", ref eurekaBuff);
-        if (addon != null && addon->IsFullyLoaded()) ImGui.EndDisabled();
         ImGui.Spacing();
         ImGui.Separator();
 
         ISharedImmediateTexture icon;
         string actionName;
-        if (advanceToNextStep && missingStateData)
+        if (collecting && advanceToNextStep && missingStateData)
         {
             icon = Plugin.TextureProvider.GetFromGameIcon(38);
             actionName = "Move your mouse off actions";
@@ -92,11 +91,25 @@ internal class CollectablesPane : IPane
         ImGui.SetNextItemWidth(100);
         ImGui.InputInt("Step", ref currentStep);
         ImGui.Spacing();
+        if (collecting) ImGui.EndDisabled();
 
         var region = ImGui.GetWindowContentRegionMax();
         ImGui.SetCursorPos(new Vector2(region.X / 2 - 24, region.Y/2 - 24));
-        if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)) && !missingStateData)
+        if (collecting)
         {
+            ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48));
+        }
+        else if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)))
+        {
+            if (nextAction != null)
+            {
+                currentGP -= nextAction.GP;
+                if (nextAction.GP == 0)
+                {
+                    currentBuff = null;
+                    currentIntegrity--;
+                }
+            }
             advanceToNextStep = true;
         }
         ImGui.Spacing();
@@ -163,7 +176,7 @@ internal class CollectablesPane : IPane
     }
 
 
-private unsafe AddonGatheringMasterpiece* GetAddon()
+    private unsafe AddonGatheringMasterpiece* GetAddon()
     {
         return (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
     }
