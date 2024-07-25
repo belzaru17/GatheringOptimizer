@@ -84,9 +84,14 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
+        if (autoOpened && currentPane.ShouldAutoClose())
+        {
+            IsOpen = autoOpened = false;
+            return;
+        }
+
         foreach (var pane in panes)
         {
-
             if (pane == currentPane) ImGui.BeginDisabled();
             if (ImGui.Button(pane.Title))
             {
@@ -119,7 +124,7 @@ public class MainWindow : Window, IDisposable
         addonWindowJustOpened = false;
         if (!IsOpen && currentPane.ShouldAutoOpen())
         {
-            IsOpen = true;
+            IsOpen = autoOpened = true;
         }
     }
 
@@ -158,4 +163,5 @@ public class MainWindow : Window, IDisposable
 
     private IPane currentPane;
     private bool addonWindowJustOpened = false;
+    private bool autoOpened = false;
 }

@@ -11,8 +11,9 @@ internal interface IPane
 
     void DrawPane();
     void SetupFromAddon(AddonEvent type, AddonArgs args);
-    bool ShouldAutoOpen();
     bool UpdateFromAddon(AddonEvent type, AddonArgs args);
+    bool ShouldAutoOpen();
+    bool ShouldAutoClose();
 
     void OnActionUsed(int actionId);
     void OnActorControl(uint type);

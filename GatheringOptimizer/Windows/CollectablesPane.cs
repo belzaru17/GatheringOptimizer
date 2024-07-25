@@ -18,8 +18,15 @@ internal class CollectablesPane : IPane
     public unsafe void DrawPane()
     {
         var addon = GetAddon();
-        var collecting = addon != null && addon->IsFullyLoaded();
-        if (collecting) UpdateFromCurrentState(addon);
+        var collecting = addon != null && addon->IsVisible;
+        if (collecting)
+        {
+            UpdateFromCurrentState(addon);
+            if (addon->RootNode != null)
+            {
+                ImGui.SetWindowPos(new Vector2(addon->X + addon->RootNode->Width * addon->Scale, addon->Y));
+            }
+        }
 
         ImGui.SetNextItemWidth(200);
         if (ImGui.BeginCombo("Rotation", rotations[currentRotation].Title))
@@ -124,6 +131,12 @@ internal class CollectablesPane : IPane
     public bool ShouldAutoOpen()
     {
         return true;
+    }
+
+    public unsafe bool ShouldAutoClose()
+    {
+        var addon = GetAddon();
+        return addon == null || !addon->IsVisible;
     }
 
     public unsafe bool UpdateFromAddon(AddonEvent type, AddonArgs args)

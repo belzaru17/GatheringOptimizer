@@ -24,6 +24,16 @@ internal class GatheringPane : IPane
 
     public void DrawPane()
     {
+        unsafe
+        {
+            var addon = GetAddon();
+            if (addon->RootNode != null)
+            {
+                ImGui.SetWindowPos(new Vector2(addon->X + addon->RootNode->Width * addon->Scale, addon->Y));
+            }
+        }
+
+
         bool changed = false;
 
         ImGui.SetNextItemWidth(100);
@@ -198,10 +208,21 @@ internal class GatheringPane : IPane
         return false;
     }
 
+    public unsafe bool ShouldAutoClose()
+    {
+        var addon = GetAddon();
+        return addon == null || !addon->IsVisible;
+    }
+
     public void OnActionUsed(int actionId) { }
 
     public void OnActorControl(uint type) { }
 
+
+    private unsafe AddonGathering* GetAddon()
+    {
+        return (AddonGathering*)Plugin.GameGui.GetAddonByName(AddonName);
+    }
 
     private enum BestResultSelector
     {
