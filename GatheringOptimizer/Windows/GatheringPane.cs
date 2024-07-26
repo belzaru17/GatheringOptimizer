@@ -120,18 +120,9 @@ internal class GatheringPane : IPane
             if (addon->IntegrityTotal == null) return false;
             integrity = addon->IntegrityTotal->NodeText.ToInteger();
 
-            AtkComponentCheckBox*[] gatherComponents = {
-                addon->GatheredItemComponentCheckBox1,
-                addon->GatheredItemComponentCheckBox2,
-                addon->GatheredItemComponentCheckBox3,
-                addon->GatheredItemComponentCheckBox4,
-                addon->GatheredItemComponentCheckBox5,
-                addon->GatheredItemComponentCheckBox6,
-                addon->GatheredItemComponentCheckBox7,
-                addon->GatheredItemComponentCheckBox8,
-            };
-            foreach (var component in gatherComponents)
+            for (int i = 0; i < addon->GatheredItemComponentCheckbox.Length; i++)
             {
+                var component = addon->GatheredItemComponentCheckbox[i];
                 AddonUtils.GetTextNode(component, 10, (value) =>
                 {
                     if (!(value.ToString() == "" || value.ToString() == "-"))

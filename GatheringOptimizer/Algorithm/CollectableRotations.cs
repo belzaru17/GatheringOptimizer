@@ -85,7 +85,13 @@ internal class Rotation_400GP : BaseCollectableRotation
             case 0:
             case 2:
             case 4:
-                return new(step + 1, ScrutinyAction.Instance);
+                if (currentGP >= 200)
+                {
+                    return new(step + 1, ScrutinyAction.Instance);
+                } else
+                {
+                    return new(step + 2, MeticulousProspectorAction.Instance);
+                }
             default:
                 return (buff == CollectableBuffs.CollectorsStandard) ? new(step + 1, MeticulousProspectorAction.Instance) : new(step + 1, ScourAction.Instance);
         }
@@ -108,13 +114,13 @@ internal class Rotation_700GP : BaseCollectableRotation
             case 1:
             case 3:
                 return new(step + 1, MeticulousProspectorAction.Instance);
+            default:
+                if (collectability >= 850 || (collectability == 800 && buff == CollectableBuffs.CollectorsStandard))
+                {
+                    return new(step + 1, MeticulousProspectorAction.Instance);
+                }
+                return new(step + 1, ScourAction.Instance);
         }
-
-        if (collectability >= 850 || (collectability == 800 && buff == CollectableBuffs.CollectorsStandard))
-        {
-            return new(step + 1, MeticulousProspectorAction.Instance);
-        }
-        return new(step + 1, ScourAction.Instance);
     }
 }
 
@@ -148,11 +154,19 @@ internal class Rotation_600_800GP : BaseCollectableRotation
                 }
                 else if (collectability >= 570)
                 {
-                    return (buff == CollectableBuffs.CollectorsHighStandard) ? new(8, BrazenProspectorAction.Instance) : new(step + 1, MeticulousProspectorAction.Instance);
+                    return (buff == CollectableBuffs.CollectorsHighStandard) ? new(7, BrazenProspectorAction.Instance) : new(step + 1, MeticulousProspectorAction.Instance);
                 }
                 return new(8, BrazenProspectorAction.Instance); // Fallback
             case 6:
-                return new(step + 1, ScrutinyAction.Instance);
+                if (currentGP >= 200)
+                {
+                    return new(step + 1, ScrutinyAction.Instance);
+                }
+                else
+                {
+                    return new(step + 2, MeticulousProspectorAction.Instance);
+
+                }
             default:
                 return new(step + 1, MeticulousProspectorAction.Instance);
         }
@@ -161,7 +175,7 @@ internal class Rotation_600_800GP : BaseCollectableRotation
 
 internal class Rotation_800_900GP : BaseCollectableRotation
 {
-    public Rotation_800_900GP() : base("800/900GP", 800, 10) { }
+    public Rotation_800_900GP() : base("800/900GP", 800, 9) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
@@ -174,31 +188,29 @@ internal class Rotation_800_900GP : BaseCollectableRotation
             case 2:
                 return new(step + 1, MeticulousProspectorAction.Instance);
             case 3:
+                return new(step + 1, ScrutinyAction.Instance);
+            case 4:
                 if (buff == CollectableBuffs.CollectorsHighStandard)
                 {
-                    return new(8, BrazenProspectorAction.Instance);
+                    return new(7, BrazenProspectorAction.Instance);
                 }
-                else if (currentGP >= 600)
+                else if (currentGP >= 400)
                 {
                     return new(step + 1, PrimingTouchAction.Instance);
                 }
                 else
                 {
-                    return new(step + 2, ScrutinyAction.Instance);
+                    return new(step + 2, MeticulousProspectorAction.Instance);
                 }
-            case 4:
-                return new(step + 1, ScrutinyAction.Instance);
             case 5:
                 return new(step + 1, MeticulousProspectorAction.Instance);
             case 6:
                 if (collectability >= 850 || (collectability == 800 && buff != null))
                 {
-                    return new(10, MeticulousProspectorAction.Instance);
+                    return new(9, MeticulousProspectorAction.Instance);
                 }
-                return new(10, ScourAction.Instance);
+                return new(9, ScourAction.Instance);
             case 7:
-                return new(step + 1, BrazenProspectorAction.Instance);
-            case 8:
                 if (currentGP >= 400)
                 {
                     return new(step + 1, PrimingTouchAction.Instance);
