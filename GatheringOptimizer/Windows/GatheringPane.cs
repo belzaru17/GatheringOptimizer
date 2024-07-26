@@ -8,6 +8,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using GatheringOptimizer.Algorithm;
 using ImGuiNET;
 using System;
+using System.Linq;
 using System.Numerics;
 
 namespace GatheringOptimizer.Windows;
@@ -27,7 +28,7 @@ internal class GatheringPane : IPane
         unsafe
         {
             var addon = GetAddon();
-            if (addon->RootNode != null)
+            if (addon != null && addon->IsVisible && addon->RootNode != null)
             {
                 ImGui.SetWindowPos(new Vector2(addon->X + addon->RootNode->Width * addon->Scale, addon->Y));
             }
@@ -87,6 +88,7 @@ internal class GatheringPane : IPane
                         break;
                     }
             }
+            actionIndex = 0;
         }
 
         ImGui.Spacing();
@@ -176,6 +178,7 @@ internal class GatheringPane : IPane
         yield = newYield;
 
         bestResult = null;
+        actionIndex = 0;
         return true;
     }
 
@@ -205,9 +208,27 @@ internal class GatheringPane : IPane
         return addon == null || !addon->IsVisible;
     }
 
-    public void OnActionUsed(int actionId) { }
+    public void OnActionUsed(int actionId)
+    {
+        Plugin.Log.Information($"OnActionUsed({actionId})");
+        if (bestResult != null && actionIndex < bestResult.Actions.Length)
+        {
+            var action = bestResult.Actions[actionIndex];
+            if ((AddonUtils.IsBotanist()? action.ActionId_BOTANIST : action.ActionId_MINER) == actionId) actionIndex++;
+        }
+    }
 
-    public void OnActorControl(uint type) { }
+    public void OnActorControl(uint type)
+    {
+        if ( type == 43 /* Collect */)
+        {
+            if (bestResult != null && actionIndex < bestResult.Actions.Length)
+            {
+                var action = bestResult.Actions[actionIndex];
+                if ((AddonUtils.IsBotanist() ? action.ActionId_BOTANIST : action.ActionId_MINER) == 0) actionIndex++;
+            }
+        }
+    }
 
 
     private unsafe AddonGathering* GetAddon()
@@ -227,12 +248,13 @@ internal class GatheringPane : IPane
         return new GatheringParameters(currentGP, integrity, gatheringChance / 100.0, gatherersBoonChance / 100.0, yield, bountifulYieldItems);
     }
 
-    private void DrawTopResult(GatheringResult? result)
+    private unsafe void DrawTopResult(GatheringResult? result)
     {
         if (result == null)
         {
             return;
         }
+        bool isBotanist = AddonUtils.IsBotanist();
         if (ImGui.BeginChild("Result"))
         {
             ImGui.Columns(2);
@@ -240,11 +262,54 @@ internal class GatheringPane : IPane
             ImGui.Text($"Min: {result.Min,5:N2}"); ImGui.SameLine();
             ImGui.Text($"Avg: {result.Avg,5:N2}"); ImGui.SameLine();
             ImGui.Text($"Max: {result.Max,5:N2}");
+            ImGui.Separator();
+            ImGui.Spacing();
+            if (actionIndex < result.Actions.Length)
+            {
+                bool eureka = false;
+                if (Plugin.ClientState.LocalPlayer != null) {
+                    var statusList = Plugin.ClientState.LocalPlayer.StatusList;
+                    for (int i = 0; i < statusList.Length; i++)
+                    {
+                        if (statusList[i]?.StatusId == 2765)
+                        {
+                            eureka = true;
+                            break;
+                        }
+                    }
+                }
+
+                uint actionIconId;
+                string actionName;
+
+                var addon = GetAddon();
+                if (addon != null && addon->IntegrityTotal != null && addon->IntegrityLeftover != null &&
+                    (addon->IntegrityLeftover->NodeText.ToInteger() < addon->IntegrityTotal->NodeText.ToInteger()) &&
+                    eureka)
+                {
+                    actionIconId = isBotanist ? 1099u : 1049u;
+                    actionName = "Wise to the World";
+                }
+                else
+                {
+                    var action = result.Actions[actionIndex];
+                    actionIconId = isBotanist ? action.IconId_BOTANIST : action.IconId_MINER;
+                    actionName = isBotanist ? action.Name_BOTANIST : action.Name_MINER;
+                }
+
+                var width = ImGui.GetColumnWidth();
+                ImGui.SetCursorPosX((width - 48) / 2);
+                var actionIcon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(actionIconId));
+                ImGui.Image(actionIcon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48));
+                ImGui.SetCursorPosX((width - ImGui.CalcTextSize(actionName).X) / 2);
+                ImGui.Text(actionName);
+            }
+
             ImGui.NextColumn();
             ImGui.Text("Actions");
             foreach (var action in result.Actions)
             {
-                if (AddonUtils.IsBotanist())
+                if (isBotanist)
                 {
                     var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(action.IconId_BOTANIST));
 
@@ -292,4 +357,5 @@ internal class GatheringPane : IPane
 
     private GatheringResult? bestResult = null;
     private BestResultSelector bestResultSelector = BestResultSelector.BEST_AVG;
+    private int actionIndex = 0;
 }

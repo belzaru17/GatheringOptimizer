@@ -9,4 +9,7 @@ internal interface IAction
 
     uint IconId_MINER { get; }
     uint IconId_BOTANIST { get; }
+
+    int ActionId_MINER { get; }
+    int ActionId_BOTANIST { get; }
 }

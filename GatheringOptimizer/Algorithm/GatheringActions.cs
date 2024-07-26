@@ -10,6 +10,9 @@ internal sealed class GatherAction : IGatheringAction
     public uint IconId_MINER => 1000;
     public uint IconId_BOTANIST => 1050;
 
+    public int ActionId_MINER => 0;
+    public int ActionId_BOTANIST => 0;
+
     public int GP => 0;
 
     public bool CanExecute(GatheringState state) => state.Integrity > 0;
@@ -34,6 +37,9 @@ internal abstract class BaseBuffAction : IGatheringAction
     public abstract uint IconId_MINER { get;  }
     public abstract uint IconId_BOTANIST { get;  }
 
+    public abstract int ActionId_MINER { get; }
+    public abstract int ActionId_BOTANIST { get; }
+
     public abstract int GP { get; }
 
     public virtual bool CanExecute(GatheringState state)
@@ -55,6 +61,8 @@ internal sealed class IncreaseGatheringChanceAction : BaseBuffAction
     public override string Name_BOTANIST => "Field Mastery";
     public override uint IconId_MINER => 1015;
     public override uint IconId_BOTANIST => 1065;
+    public override int ActionId_MINER => 235;
+    public override int ActionId_BOTANIST => 218;
     public override int GP => 50;
 
     public override bool CanExecute(GatheringState state)
@@ -81,6 +89,8 @@ internal sealed class IncreaseGatheringChanceIIAction : BaseBuffAction
     public override string Name_BOTANIST => "Field Mastery II";
     public override uint IconId_MINER => 1016;
     public override uint IconId_BOTANIST => 1066;
+    public override int ActionId_MINER => 237;
+    public override int ActionId_BOTANIST => 220;
     public override int GP => 100;
 
     public override bool CanExecute(GatheringState state)
@@ -107,6 +117,8 @@ internal sealed class IncreaseGatheringChanceIIIAction : BaseBuffAction
     public override string Name_BOTANIST => "Field Mastery III";
     public override uint IconId_MINER => 1017;
     public override uint IconId_BOTANIST => 1067;
+    public override int ActionId_MINER => 295;
+    public override int ActionId_BOTANIST => 294;
     public override int GP => 250;
 
     public override bool CanExecute(GatheringState state)
@@ -133,6 +145,8 @@ internal sealed class IncreaseBoonChanceIAction : BaseBuffAction
     public override string Name_BOTANIST => "Pioneer's Gift I";
     public override uint IconId_MINER => 1045;
     public override uint IconId_BOTANIST => 1095;
+    public override int ActionId_MINER => 21177;
+    public override int ActionId_BOTANIST => 21178;
     public override int GP => 50;
 
     public override bool CanExecute(GatheringState state)
@@ -159,6 +173,8 @@ internal sealed class IncreaseBoonChanceIIAction : BaseBuffAction
     public override string Name_BOTANIST => "Pioneer's Gift II";
     public override uint IconId_MINER => 1046;
     public override uint IconId_BOTANIST => 1096;
+    public override int ActionId_MINER => 25589;
+    public override int ActionId_BOTANIST => 25590;
     public override int GP => 100;
 
     public override bool CanExecute(GatheringState state)
@@ -185,6 +201,8 @@ internal sealed class IncreaseBoonItemsAction : BaseBuffAction
     public override string Name_BOTANIST => "Nophica's Tidings";
     public override uint IconId_MINER => 1047;
     public override uint IconId_BOTANIST => 1097;
+    public override int ActionId_MINER => 21203;
+    public override int ActionId_BOTANIST => 21204;
     public override int GP => 200;
 
     public override bool CanExecute(GatheringState state)
@@ -210,6 +228,8 @@ internal sealed class IncreaseAttemptItemsAction : BaseBuffAction
     public override string Name_BOTANIST => "Blessed Harvest";
     public override uint IconId_MINER => 1006;
     public override uint IconId_BOTANIST => 1056;
+    public override int ActionId_MINER => 239;
+    public override int ActionId_BOTANIST => 222;
     public override int GP => 400;
 
     public override bool CanExecute(GatheringState state)
@@ -236,6 +256,8 @@ internal sealed class IncreaseAttemptItemsIIAction : BaseBuffAction
     public override string Name_BOTANIST => "Blessed Harvest II";
     public override uint IconId_MINER => 1007;
     public override uint IconId_BOTANIST => 1057;
+    public override int ActionId_MINER => 241;
+    public override int ActionId_BOTANIST => 224;
     public override int GP => 500;
 
     public override bool CanExecute(GatheringState state)
@@ -262,6 +284,8 @@ internal sealed class IncreaseAttemptsAction : BaseBuffAction
     public override string Name_BOTANIST => "Ageless Words";
     public override uint IconId_MINER => 1009;
     public override uint IconId_BOTANIST => 1059;
+    public override int ActionId_MINER => 232;  // Eureka 26521
+    public override int ActionId_BOTANIST => 215; // Eureka 26522
     public override int GP => 300;
 
     public override bool CanExecute(GatheringState state)
@@ -287,6 +311,8 @@ internal sealed class IncreaseNextAttemptGatheringChanceAction : BaseBuffAction
     public override string Name_BOTANIST => "Flora Mastery";
     public override uint IconId_MINER => 1020;
     public override uint IconId_BOTANIST => 1070;
+    public override int ActionId_MINER => 4072;
+    public override int ActionId_BOTANIST => 4086;
     public override int GP => 50;
 
     public override bool CanExecute(GatheringState state)
@@ -313,6 +339,8 @@ internal sealed class IncreaseNextAttemptItemsAction : BaseBuffAction
     public override string Name_BOTANIST => "Bountiful Harvest";
     public override uint IconId_MINER => 1035;
     public override uint IconId_BOTANIST => 1085;
+    public override int ActionId_MINER => 272;
+    public override int ActionId_BOTANIST => 273;
     public override int GP => 100;
 
     public override bool CanExecute(GatheringState state)
