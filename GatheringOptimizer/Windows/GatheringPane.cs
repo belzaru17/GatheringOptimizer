@@ -248,12 +248,36 @@ internal class GatheringPane : IPane
         return new GatheringParameters(currentGP, integrity, gatheringChance / 100.0, gatherersBoonChance / 100.0, yield, bountifulYieldItems);
     }
 
-    private unsafe void DrawTopResult(GatheringResult? result)
+    private void DrawTopResult(GatheringResult? result)
     {
         if (result == null)
         {
             return;
         }
+
+        bool eureka = false;
+        if (Plugin.ClientState.LocalPlayer != null)
+        {
+            var statusList = Plugin.ClientState.LocalPlayer.StatusList;
+            for (int i = 0; i < statusList.Length; i++)
+            {
+                if (statusList[i]?.StatusId == 2765)
+                {
+                    eureka = true;
+                    break;
+                }
+            }
+        }
+        unsafe
+        {
+            var addon = GetAddon();
+            eureka &=
+                addon != null
+                && addon->IntegrityTotal != null
+                && addon->IntegrityLeftover != null
+                && (addon->IntegrityLeftover->NodeText.ToInteger() < addon->IntegrityTotal->NodeText.ToInteger());
+        }
+
         bool isBotanist = AddonUtils.IsBotanist();
         if (ImGui.BeginChild("Result"))
         {
@@ -266,26 +290,11 @@ internal class GatheringPane : IPane
             ImGui.Spacing();
             if (actionIndex < result.Actions.Length)
             {
-                bool eureka = false;
-                if (Plugin.ClientState.LocalPlayer != null) {
-                    var statusList = Plugin.ClientState.LocalPlayer.StatusList;
-                    for (int i = 0; i < statusList.Length; i++)
-                    {
-                        if (statusList[i]?.StatusId == 2765)
-                        {
-                            eureka = true;
-                            break;
-                        }
-                    }
-                }
 
                 uint actionIconId;
                 string actionName;
 
-                var addon = GetAddon();
-                if (addon != null && addon->IntegrityTotal != null && addon->IntegrityLeftover != null &&
-                    (addon->IntegrityLeftover->NodeText.ToInteger() < addon->IntegrityTotal->NodeText.ToInteger()) &&
-                    eureka)
+                if (eureka)
                 {
                     actionIconId = isBotanist ? 1099u : 1049u;
                     actionName = "Wise to the World";
@@ -307,24 +316,30 @@ internal class GatheringPane : IPane
 
             ImGui.NextColumn();
             ImGui.Text("Actions");
-            foreach (var action in result.Actions)
+            for (int i = 0; i < result.Actions.Length; i++)
             {
+                var action = result.Actions[i];
+                uint actionIconId;
+                string actionName;
+
                 if (isBotanist)
                 {
-                    var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(action.IconId_BOTANIST));
-
-                    ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(24, 24));
-                    ImGui.SameLine();
-                    ImGui.Text($" {action.Name_BOTANIST}");
+                    actionIconId = action.IconId_BOTANIST;
+                    actionName = action.Name_BOTANIST;
                 }
                 else
                 {
-                    var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(action.IconId_MINER));
-
-                    ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(24, 24));
-                    ImGui.SameLine();
-                    ImGui.Text($" {action.Name_MINER}");
+                    actionIconId = action.IconId_MINER;
+                    actionName = action.Name_MINER;
                 }
+                var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(actionIconId));
+                ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(24, 24));
+                ImGui.SameLine();
+                if (i < actionIndex) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.3f, 0.3f, 0.3f, 1));
+                else if (i == actionIndex && !eureka) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 1f, 1));
+                else ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1));
+                ImGui.Text($" {actionName}");
+                ImGui.PopStyleColor();
             }
             ImGui.EndChild();
         }
