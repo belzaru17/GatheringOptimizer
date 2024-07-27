@@ -1,7 +1,8 @@
+using Dalamud.Interface.Windowing;
+using GatheringOptimizer.Algorithm.Collectables;
+using ImGuiNET;
 using System;
 using System.Numerics;
-using Dalamud.Interface.Windowing;
-using ImGuiNET;
 
 namespace GatheringOptimizer.Windows;
 
@@ -16,7 +17,7 @@ public class ConfigWindow : Window, IDisposable
 
         this.SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(375, 330),
+            MinimumSize = new Vector2(425, 380),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
     }
@@ -56,6 +57,52 @@ public class ConfigWindow : Window, IDisposable
             saveConfig = true;
         }
         if (autoOpenOnAnyGather) ImGui.EndDisabled();
+        ImGui.Spacing();
+
+        if (ImGui.BeginTable("Rotation Configurations", 4))
+        {
+            ImGui.TableSetupColumn("Rotation", ImGuiTableColumnFlags.WidthFixed, 150);
+            ImGui.TableSetupColumn("Enabled", ImGuiTableColumnFlags.WidthFixed, 60);
+            ImGui.TableSetupColumn("Min GP", ImGuiTableColumnFlags.WidthFixed, 80);
+            ImGui.TableSetupColumn("No Extra GP", ImGuiTableColumnFlags.WidthFixed, 80);
+            ImGui.TableHeadersRow();
+
+            foreach (var rotation in CollectableRotations.Rotations)
+            {
+                bool changed = false;
+                RotationConfiguration rotationConfig;
+                if (!plugin.Configuration.RotationConfigurations.TryGetValue(rotation.Id, out rotationConfig!))
+                {
+                    rotationConfig = rotation.DefaultConfiguration();
+                }
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Text(rotation.Title);
+                ImGui.TableNextColumn();
+                if (rotation.MinGP == 0) ImGui.BeginDisabled();
+                bool enabled = rotationConfig.Enabled;
+                changed |= ImGui.Checkbox($"##Enabled_{rotation.Id}", ref enabled);
+                ImGui.TableNextColumn();
+                int minGP = rotationConfig.MinGP;
+                ImGui.SetNextItemWidth(65);
+                changed |= ImGui.InputInt($"##MinGP_{rotation.Id}", ref minGP, 0, 0);
+                if (rotation.MinGP == 0) ImGui.EndDisabled();
+                ImGui.TableNextColumn();
+                bool noExtraGP = rotationConfig.NoExtraGP;
+                changed |= ImGui.Checkbox($"##NoExtraGP_{rotation.Id}", ref noExtraGP);
+
+                if (changed)
+                {
+                    rotationConfig.Enabled = enabled;
+                    rotationConfig.NoExtraGP = noExtraGP;
+                    rotationConfig.MinGP = minGP;
+                    plugin.Configuration.RotationConfigurations[rotation.Id] = rotationConfig;
+                    saveConfig = true;
+                }
+            }
+
+            ImGui.EndTable();
+        }
 
         ImGui.Spacing();
         ImGui.Separator();

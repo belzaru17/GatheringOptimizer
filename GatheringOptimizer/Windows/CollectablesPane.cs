@@ -5,7 +5,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using GatheringOptimizer.Algorithm.Collectables;
 using ImGuiNET;
 using System;
-using System.Collections.Immutable;
 using System.Numerics;
 
 namespace GatheringOptimizer.Windows;
@@ -14,6 +13,11 @@ internal class CollectablesPane : IPane
 {
     public string AddonName => "GatheringMasterpiece";
     public string Title => "Collectables";
+
+    public CollectablesPane(Plugin plugin)
+    {
+        this.plugin = plugin;
+    }
 
     public unsafe void DrawPane()
     {
@@ -29,11 +33,11 @@ internal class CollectablesPane : IPane
         }
 
         ImGui.SetNextItemWidth(200);
-        if (ImGui.BeginCombo("Rotation", rotations[currentRotation].Title))
+        if (ImGui.BeginCombo("Rotation", CollectableRotations.Rotations[currentRotation].Title))
         {
-            for (int i = 0; i < rotations.Length; i++)
+            for (int i = 0; i < CollectableRotations.Rotations.Length; i++)
             {
-                if (ImGui.Selectable(rotations[i].Title))
+                if (ImGui.Selectable(CollectableRotations.Rotations[i].Title))
                 {
                     Reset();
                 }
@@ -90,7 +94,13 @@ internal class CollectablesPane : IPane
                 currentStep = (nextAction == null) ? 0 : nextStep;
                 advanceToNextStep = false;
             }
-            (nextStep, nextAction) = rotations[currentRotation].NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff);
+            var rotation = CollectableRotations.Rotations[currentRotation];
+            bool noExtraGP = rotation.MinGP == 0;
+            if (plugin.Configuration.RotationConfigurations.TryGetValue(rotation.Id, out var rotationConfiguration))
+            {
+                noExtraGP = rotationConfiguration.NoExtraGP;
+            }
+            (nextStep, nextAction) = rotation.NextAction(currentStep, currentGP, currentIntegrity, maxIntegrity, currentCollectability, currentBuff, eurekaBuff, noExtraGP);
             icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(AddonUtils.IsBotanist() ? nextAction.IconId_BOTANIST : nextAction.IconId_MINER));
             actionName = AddonUtils.IsBotanist() ? nextAction.Name_BOTANIST : nextAction.Name_MINER;
         }
@@ -144,12 +154,16 @@ internal class CollectablesPane : IPane
         Reset();
         if (Plugin.ClientState.LocalPlayer != null)
         {
-            bool leveling = Plugin.ClientState.LocalPlayer.Level < 100;
             currentGP = (int)Plugin.ClientState.LocalPlayer.CurrentGp;
-            for (int i = rotations.Length - 1; i >= 0; i--)
+            for (int i = CollectableRotations.Rotations.Length - 1; i >= 0; i--)
             {
-                var rotation = rotations[i];
-                if (((leveling == rotation.Leveling) || rotation.MinGP == 0) && currentGP >= rotation.MinGP)
+                var rotation = CollectableRotations.Rotations[i];
+                RotationConfiguration rotationConfig;
+                if (!plugin.Configuration.RotationConfigurations.TryGetValue(rotation.Id, out rotationConfig!))
+                {
+                    rotationConfig = rotation.DefaultConfiguration();
+                }
+                if ((rotationConfig.Enabled || rotation.MinGP == 0) && currentGP >= rotationConfig.MinGP)
                 {
                     currentRotation = i;
                     break;
@@ -257,15 +271,7 @@ internal class CollectablesPane : IPane
         missingStateData = newMissingStateData;
     }
 
-    static CollectablesPane() {
-        rotations = [
-            new Rotation_0GP(),
-            new Rotation_400GP(), new Rotation_700GP(),
-            new Rotation_600_800GP(), new Rotation_800_900GP(), new Rotation_1000GP(),
-        ];
-    }
-
-    private static readonly ImmutableArray<ICollectableRotation> rotations;
+    private readonly Plugin plugin;
 
     private int currentRotation = 0;
     private int currentStep = 0;

@@ -19,7 +19,7 @@ public class MainWindow : Window, IDisposable
         this.plugin = plugin;
 
         var gatheringPane = new GatheringPane(plugin);
-        var collectiblesPane = new CollectablesPane();
+        var collectiblesPane = new CollectablesPane(plugin);
         currentPane = gatheringPane;
         panes = [gatheringPane, collectiblesPane];
 

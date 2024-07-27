@@ -1,18 +1,41 @@
 ﻿using System;
+using System.Collections.Immutable;
 
 namespace GatheringOptimizer.Algorithm.Collectables;
 
+internal static class CollectableRotations
+{
+    public static readonly ImmutableArray<ICollectableRotation> Rotations = [
+        new Rotation_0GP(),
+        new Rotation_400GP(),
+        new Rotation_700GP(),
+        new Rotation_600_800GP(),
+        new Rotation_800_900GP(),
+        new Rotation_1000GP(),
+    ];
+}
+
 internal abstract class BaseCollectableRotation : ICollectableRotation
 {
+    public int Id { get; init; }
     public string Title { get; init; }
     public int MinGP { get; init; }
     public virtual bool Leveling => false;
 
-    public Tuple<int, ICollectableAction> NextAction(int step, int currentGP, int integrity, int maxIntegrity, int collectability, CollectableBuff? buff, bool eurekaBuff)
+    public RotationConfiguration DefaultConfiguration()
+    {
+        RotationConfiguration config = new();
+        config.Enabled = !Leveling;
+        config.NoExtraGP = MinGP == 0;
+        config.MinGP = MinGP;
+        return config;
+    }
+
+    public Tuple<int, ICollectableAction> NextAction(int step, int currentGP, int integrity, int maxIntegrity, int collectability, CollectableBuff? buff, bool eurekaBuff, bool noExtraGP)
     {
         if (collectability >= 1000 || step >= maxStep || integrity == 1)
         {
-            if (integrity < maxIntegrity)
+            if (!noExtraGP && integrity < maxIntegrity)
             {
                 if (eurekaBuff)
                 {
@@ -29,8 +52,9 @@ internal abstract class BaseCollectableRotation : ICollectableRotation
         return SubNextAction(step, currentGP, collectability, buff);
     }
 
-    protected BaseCollectableRotation(string title, int minGP, int maxStep)
+    protected BaseCollectableRotation(int id, string title, int minGP, int maxStep)
     {
+        Id = id;
         Title = title;
         MinGP = minGP;
         this.maxStep = maxStep;
@@ -57,7 +81,7 @@ internal abstract class BaseCollectableRotation : ICollectableRotation
 
 internal class Rotation_0GP : BaseCollectableRotation
 {
-    public Rotation_0GP() : base("0GP Ephemeral", 0, 2) { }
+    public Rotation_0GP() : base(0, "0GP Ephemeral", 0, 2) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
@@ -76,7 +100,7 @@ internal class Rotation_400GP : BaseCollectableRotation
 {
     public override bool Leveling => true;
 
-    public Rotation_400GP() : base("400/600GP Low Stat", 400, 6) { }
+    public Rotation_400GP() : base(1, "400/600GP Low Stat", 400, 6) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
@@ -103,7 +127,7 @@ internal class Rotation_700GP : BaseCollectableRotation
 {
     public override bool Leveling => true;
 
-    public Rotation_700GP() : base("700GP Standard", 700, 5) { }
+    public Rotation_700GP() : base(2, "700GP Standard", 700, 5) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
@@ -127,7 +151,7 @@ internal class Rotation_700GP : BaseCollectableRotation
 
 internal class Rotation_600_800GP : BaseCollectableRotation
 {
-    public Rotation_600_800GP() : base("600/800GP Min Stat", 600, 8) { }
+    public Rotation_600_800GP() : base(3, "600/800GP Min Stat", 600, 8) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
@@ -176,7 +200,7 @@ internal class Rotation_600_800GP : BaseCollectableRotation
 
 internal class Rotation_800_900GP : BaseCollectableRotation
 {
-    public Rotation_800_900GP() : base("800/900GP", 800, 9) { }
+    public Rotation_800_900GP() : base(4, "800/900GP", 800, 9) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
@@ -228,7 +252,7 @@ internal class Rotation_800_900GP : BaseCollectableRotation
 
 internal class Rotation_1000GP : BaseCollectableRotation
 {
-    public Rotation_1000GP() : base("1000GP", 1000, 6) { }
+    public Rotation_1000GP() : base(5, "1000GP", 1000, 6) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
     {
