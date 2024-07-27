@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace GatheringOptimizer.Algorithm;
+namespace GatheringOptimizer.Algorithm.Gathering;
 
 internal record GatheringResult(double Min, double Avg, double Max, ImmutableArray<IGatheringAction> Actions, GatheringState State)
 {

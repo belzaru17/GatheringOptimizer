@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GatheringOptimizer.Algorithm;
+namespace GatheringOptimizer.Algorithm.Gathering;
 
 internal sealed class GatherAction : IGatheringAction
 {
@@ -34,8 +34,8 @@ internal abstract class BaseBuffAction : IGatheringAction
     public abstract string Name_MINER { get; }
     public abstract string Name_BOTANIST { get; }
 
-    public abstract uint IconId_MINER { get;  }
-    public abstract uint IconId_BOTANIST { get;  }
+    public abstract uint IconId_MINER { get; }
+    public abstract uint IconId_BOTANIST { get; }
 
     public abstract int ActionId_MINER { get; }
     public abstract int ActionId_BOTANIST { get; }
@@ -67,7 +67,7 @@ internal sealed class IncreaseGatheringChanceAction : BaseBuffAction
 
     public override bool CanExecute(GatheringState state)
     {
-        return base.CanExecute(state) && state.GatheringChance > 0.0 && state.GatheringChance < 1.0 && 
+        return base.CanExecute(state) && state.GatheringChance > 0.0 && state.GatheringChance < 1.0 &&
             !(state.Buffs.Contains(IncreasedGatheringChanceBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIBuff.Instance) || state.Buffs.Contains(IncreasedGatheringChanceIIIBuff.Instance));
     }
 

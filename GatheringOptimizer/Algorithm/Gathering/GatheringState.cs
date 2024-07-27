@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
-namespace GatheringOptimizer.Algorithm;
+namespace GatheringOptimizer.Algorithm.Gathering;
 
 internal class GatheringState
 {
@@ -28,9 +28,9 @@ internal class GatheringState
     public int BountifulYieldItems => Buffs.Any((i) => i.BountifulYield) ? Parameters.BountifulYieldItems : 0;
     public bool HasExtraActionProc => Buffs.Contains(ExtraAttemptProcBuff.Instance);
 
-    public int MinItems => (GatheringChance < 1) ? 0 : (Yield + BountifulYieldItems);
+    public int MinItems => GatheringChance < 1 ? 0 : Yield + BountifulYieldItems;
     public double AvgItems => GatheringChance * ((Yield + GatherersBoonChance * (1 + GatherersBoonExtraItems)) * (HasExtraActionProc ? 1.5 : 1) + BountifulYieldItems);
-    public int MaxItems => (Yield + 1 + GatherersBoonExtraItems) * (HasExtraActionProc? 2 : 1) + BountifulYieldItems;
+    public int MaxItems => (Yield + 1 + GatherersBoonExtraItems) * (HasExtraActionProc ? 2 : 1) + BountifulYieldItems;
 
 
     public GatheringState(GatheringParameters parameters) : this(parameters, parameters.MaxGP)
@@ -73,12 +73,12 @@ internal class GatheringState
         var maxItems = MaxItems;
 
         newBuffs.Remove(ExtraAttemptProcBuff.Instance);
-        return new ActionResult(MinItems, avgItems, maxItems, new GatheringState(newParameters, Math.Min(CurrentGP + GP_RECOVERY_PER_GATHER, Parameters.MaxGP), Integrity - 1, UsedGP,  newBuffs));
+        return new ActionResult(MinItems, avgItems, maxItems, new GatheringState(newParameters, Math.Min(CurrentGP + GP_RECOVERY_PER_GATHER, Parameters.MaxGP), Integrity - 1, UsedGP, newBuffs));
     }
 
     private static readonly int GP_RECOVERY_PER_GATHER = 6;
 
-    private GatheringState(GatheringParameters parameters, int currentGP,  int integrity, int usedGP, HashSet<IBuff> buffs)
+    private GatheringState(GatheringParameters parameters, int currentGP, int integrity, int usedGP, HashSet<IBuff> buffs)
     {
         Parameters = parameters;
         CurrentGP = currentGP;

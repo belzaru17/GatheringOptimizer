@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GatheringOptimizer.Algorithm;
+namespace GatheringOptimizer.Algorithm.Collectables;
 
 internal interface ICollectableRotation
 {

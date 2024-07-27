@@ -2,7 +2,7 @@
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Textures;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using GatheringOptimizer.Algorithm;
+using GatheringOptimizer.Algorithm.Collectables;
 using ImGuiNET;
 using System;
 using System.Collections.Immutable;

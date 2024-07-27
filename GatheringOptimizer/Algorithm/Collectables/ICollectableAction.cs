@@ -1,4 +1,4 @@
-﻿namespace GatheringOptimizer.Algorithm;
+﻿namespace GatheringOptimizer.Algorithm.Collectables;
 
 internal interface ICollectableAction : IAction
 {

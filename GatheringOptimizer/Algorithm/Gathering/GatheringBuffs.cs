@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GatheringOptimizer.Algorithm;
+namespace GatheringOptimizer.Algorithm.Gathering;
 
 internal abstract class BaseBuff : IBuff
 {
@@ -50,7 +50,7 @@ internal sealed class IncreasedGatheringChanceIIIBuff : BaseBuff
     public static IncreasedGatheringChanceIIIBuff Instance => instance.Value;
 
     private static readonly Lazy<IncreasedGatheringChanceIIIBuff> instance = new(() => new IncreasedGatheringChanceIIIBuff());
-    
+
     private IncreasedGatheringChanceIIIBuff() { }
 }
 
