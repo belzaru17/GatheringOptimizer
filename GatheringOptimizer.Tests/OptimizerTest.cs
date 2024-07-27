@@ -1,5 +1,4 @@
-﻿using GatheringOptimizer.Algorithm;
-using GatheringOptimizer.Algorithm.Gathering;
+﻿using GatheringOptimizer.Algorithm.Gathering;
 
 namespace GatheringOptimizer.Tests;
 

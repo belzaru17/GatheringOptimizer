@@ -2,9 +2,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using GatheringOptimizer.Algorithm.Gathering;
 
-namespace GatheringOptimizer.Algorithm;
+namespace GatheringOptimizer.Algorithm.Gathering;
 
 internal static class Optimizer
 {
@@ -30,7 +29,7 @@ internal static class Optimizer
         IncreaseNextAttemptItemsAction.Instance,
     }.OrderBy((x) => x.GP).ToImmutableArray();
 
-    private static GatheringResult RecursiveGenerateBestResult(GatheringParameters parameters, Func<GatheringResult, GatheringResult, bool>  comparer, GatheringResult partialResult, int startAction)
+    private static GatheringResult RecursiveGenerateBestResult(GatheringParameters parameters, Func<GatheringResult, GatheringResult, bool> comparer, GatheringResult partialResult, int startAction)
     {
         if (partialResult.State.Integrity == 0)
         {
@@ -49,7 +48,7 @@ internal static class Optimizer
             {
                 var newResult = RecursiveGenerateBestResult(parameters, comparer, partialResult.ExecuteAction(action), i);
                 Debug.Assert(newResult.State.Integrity == 0);
-                if (comparer(newResult,  bestResult))
+                if (comparer(newResult, bestResult))
                 {
                     bestResult = newResult;
                 }
