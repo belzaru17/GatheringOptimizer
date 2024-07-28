@@ -60,6 +60,7 @@ internal class GatheringPane : IPane
         ImGui.Spacing();
         ImGui.Separator();
 
+        ImGui.SetCursorPosX(140f);
         int newBestResultSelector = (int)bestResultSelector;
         changed |= ImGui.RadioButton("Min", ref newBestResultSelector, (int)BestResultSelector.BEST_MIN);
         ImGui.SameLine();
@@ -280,16 +281,8 @@ internal class GatheringPane : IPane
         bool isBotanist = AddonUtils.IsBotanist();
         if (ImGui.BeginChild("Result"))
         {
-            ImGui.Columns(2);
-            ImGui.Text($"GP:  {result.State.UsedGP,4:N0}");
-            ImGui.Text($"Min: {result.Min,5:N2}"); ImGui.SameLine();
-            ImGui.Text($"Avg: {result.Avg,5:N2}"); ImGui.SameLine();
-            ImGui.Text($"Max: {result.Max,5:N2}");
-            ImGui.Separator();
-            ImGui.Spacing();
-            if (actionIndex < result.Actions.Length)
+            if (eureka || (actionIndex < result.Actions.Length))
             {
-
                 uint actionIconId;
                 string actionName;
 
@@ -305,18 +298,30 @@ internal class GatheringPane : IPane
                     actionName = isBotanist ? action.Name_BOTANIST : action.Name_MINER;
                 }
 
-                var width = ImGui.GetColumnWidth();
+                var width = ImGui.GetWindowWidth();
                 ImGui.SetCursorPosX((width - 48) / 2);
                 var actionIcon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(actionIconId));
                 ImGui.Image(actionIcon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48));
                 ImGui.SetCursorPosX((width - ImGui.CalcTextSize(actionName).X) / 2);
                 ImGui.Text(actionName);
             }
+            var summary = $"GP: {result.State.UsedGP,4:N0} Min: {result.Min,5:N2} Avg: {result.Avg,5:N2} Max: {result.Max,5:N2}";
+            ImGui.SetCursorPosX((ImGui.GetWindowWidth() - ImGui.CalcTextSize(summary).X) / 2);
+            ImGui.Text(summary);
+            ImGui.Separator();
+            ImGui.Spacing();
 
-            ImGui.NextColumn();
-            ImGui.Text("Actions");
+            var title = "Actions";
+            ImGui.SetCursorPosX((ImGui.GetWindowWidth() - ImGui.CalcTextSize(title).X) / 2);
+            ImGui.Text(title);
+            ImGui.Columns(2);
             for (int i = 0; i < result.Actions.Length; i++)
             {
+                if (i == 10)
+                {
+                    ImGui.NextColumn();
+                }
+
                 var action = result.Actions[i];
                 uint actionIconId;
                 string actionName;
