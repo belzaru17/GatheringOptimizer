@@ -26,10 +26,7 @@ internal class CollectablesPane : IPane
         if (collecting)
         {
             UpdateFromCurrentState(addon);
-            if (addon->RootNode != null)
-            {
-                ImGui.SetWindowPos(new Vector2(addon->X + addon->RootNode->Width * addon->Scale, addon->Y));
-            }
+            ImGui.SetWindowPos(new Vector2(addon->X - ImGui.GetWindowWidth(), addon->Y));
         }
 
         ImGui.SetNextItemWidth(200);

@@ -14,7 +14,7 @@ namespace GatheringOptimizer.Windows;
 public class MainWindow : Window, IDisposable
 {
     public MainWindow(Plugin plugin) : base(
-        "Gathering Optimizer", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        "Gathering Optimizer", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoResize)
     {
         this.plugin = plugin;
 
@@ -25,8 +25,8 @@ public class MainWindow : Window, IDisposable
 
         SizeConstraints = new()
         {
-            MinimumSize = new Vector2(450, 600),
-            MaximumSize = new Vector2(float.MaxValue, float.MaxValue),
+            MinimumSize = new Vector2(450, 674),
+            MaximumSize = new Vector2(450, 674),
         };
 
         foreach (var pane in panes)
