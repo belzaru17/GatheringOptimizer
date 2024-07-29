@@ -21,6 +21,7 @@ internal abstract class BaseCollectableRotation : ICollectableRotation
     public string Title { get; init; }
     public int MinGP { get; init; }
     public virtual bool Leveling => false;
+    public virtual string? Credits => null;
 
     public RotationConfiguration DefaultConfiguration()
     {
@@ -81,6 +82,8 @@ internal abstract class BaseCollectableRotation : ICollectableRotation
 
 internal class Rotation_0GP : BaseCollectableRotation
 {
+    public override string? Credits => "I'nanghal Shikhu, Zodiark, (Shikhu#3190)";
+
     public Rotation_0GP() : base(0, "0GP Ephemeral", 0, 2) { }
 
     protected override Tuple<int, ICollectableAction> SubNextAction(int step, int currentGP, int collectability, CollectableBuff? buff)
@@ -99,6 +102,7 @@ internal class Rotation_0GP : BaseCollectableRotation
 internal class Rotation_400GP : BaseCollectableRotation
 {
     public override bool Leveling => true;
+    public override string? Credits => "I'nanghal Shikhu, Zodiark, (Shikhu#3190)";
 
     public Rotation_400GP() : base(1, "400/600GP Low Stat", 400, 6) { }
 
@@ -126,6 +130,7 @@ internal class Rotation_400GP : BaseCollectableRotation
 internal class Rotation_700GP : BaseCollectableRotation
 {
     public override bool Leveling => true;
+    public override string? Credits => "I'nanghal Shikhu, Zodiark, (Shikhu#3190)";
 
     public Rotation_700GP() : base(2, "700GP Standard", 700, 5) { }
 

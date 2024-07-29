@@ -132,6 +132,13 @@ internal class CollectablesPane : IPane
         ImGui.Spacing();
         ImGui.SetCursorPosX((region.X - ImGui.CalcTextSize(actionName).X) / 2);
         ImGui.Text(actionName);
+
+        var credits = CollectableRotations.Rotations[currentRotation].Credits;
+        if (credits != null)
+        {
+            ImGui.SetCursorPosY(region.Y - ImGui.CalcTextSize(credits).Y);
+            ImGui.Text($"Made by: {credits}");
+        }
     }
 
     public void SetupFromAddon(AddonEvent type, AddonArgs args)
