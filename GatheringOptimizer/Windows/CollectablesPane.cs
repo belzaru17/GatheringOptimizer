@@ -137,7 +137,7 @@ internal class CollectablesPane : IPane
         if (credits != null)
         {
             ImGui.SetCursorPosY(region.Y - ImGui.CalcTextSize(credits).Y);
-            ImGui.Text($"Made by: {credits}");
+            ImGui.Text($"Rotation by: {credits}");
         }
     }
 
