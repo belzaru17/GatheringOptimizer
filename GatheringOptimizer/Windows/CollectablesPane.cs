@@ -29,6 +29,7 @@ internal class CollectablesPane : IPane
             ImGui.SetWindowPos(new Vector2(addon->X - ImGui.GetWindowWidth(), addon->Y));
         }
 
+        if (collecting && currentStep > 0) ImGui.BeginDisabled();
         ImGui.SetNextItemWidth(200);
         if (ImGui.BeginCombo("Rotation", CollectableRotations.Rotations[currentRotation].Title))
         {
@@ -36,6 +37,7 @@ internal class CollectablesPane : IPane
             {
                 if (ImGui.Selectable(CollectableRotations.Rotations[i].Title))
                 {
+                    currentRotation = i;
                     Reset();
                 }
             }
@@ -43,6 +45,7 @@ internal class CollectablesPane : IPane
         }
         ImGui.SameLine();
         ImGui.Text(collecting ? "Collecting" : "Simulating");
+        if (collecting && currentStep > 0) ImGui.EndDisabled();
         ImGui.Spacing();
         ImGui.Separator();
 
