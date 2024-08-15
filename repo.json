@@ -4,7 +4,7 @@
   "InternalName": "gatheringOptimizer",
   "AssemblyVersion": "0.6.4",
   "Punchline": "Optimize retainer gatherings.",
-  "Description": "Use /vo to open UI.",
+  "Description": "Use /go to open UI.",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/belzaru17/GatheringOptimizer",
   "Tags": [
