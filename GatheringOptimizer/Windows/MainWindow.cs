@@ -2,6 +2,7 @@ using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Hooking;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using System;
@@ -17,6 +18,7 @@ public class MainWindow : Window, IDisposable
         "Gathering Optimizer", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoResize)
     {
         this.plugin = plugin;
+        settingsIcon = Plugin.GetTexture("settings_FILL1_wght400_GRAD0_opsz48.png");
 
         var gatheringPane = new GatheringPane(plugin);
         var collectiblesPane = new CollectablesPane(plugin);
@@ -100,7 +102,12 @@ public class MainWindow : Window, IDisposable
             if (pane == currentPane) ImGui.EndDisabled();
             ImGui.SameLine();
         }
-        ImGui.Spacing();
+        ImGui.SetCursorPosX(ImGui.GetWindowSize().X - 30);
+        if (ImGui.ImageButton(settingsIcon.GetWrapOrEmpty().ImGuiHandle, new(17, 17)))
+        {
+            plugin.OpenConfigUI();
+        }
+
         ImGui.Separator();
         currentPane.DrawPane();
     }
@@ -154,6 +161,7 @@ public class MainWindow : Window, IDisposable
     }
 
     private readonly Plugin plugin;
+    private readonly ISharedImmediateTexture settingsIcon;
     private readonly ImmutableArray<IPane> panes;
 
     private delegate void OnActionUsedDelegate(uint sourceId, IntPtr sourceCharacter, IntPtr pos, IntPtr effectHeader, IntPtr effectArray, IntPtr effectTrail);

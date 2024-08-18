@@ -1,10 +1,12 @@
 using Dalamud.Game.Command;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using GatheringOptimizer.Windows;
 using System;
+using System.IO;
 
 namespace GatheringOptimizer;
 
@@ -79,6 +81,21 @@ public class Plugin : IDalamudPlugin
         GC.SuppressFinalize(this);
     }
 
+    public static ISharedImmediateTexture GetTexture(string basename)
+    {
+        return TextureProvider.GetFromFile(Path.Join(PluginInterface.AssemblyLocation.DirectoryName, "Resources\\Icons", basename));
+    }
+
+    public void OpenMainUI()
+    {
+        MainWindow.IsOpen = true;
+    }
+
+    public void OpenConfigUI()
+    {
+        ConfigWindow.IsOpen = true;
+    }
+
     private void OnCommand(string command, string args)
     {
         if (args == "config")
@@ -95,15 +112,5 @@ public class Plugin : IDalamudPlugin
     {
 
         WindowSystem.Draw();
-    }
-
-    public void OpenMainUI()
-    {
-        MainWindow.IsOpen = true;
-    }
-
-    public void OpenConfigUI()
-    {
-        ConfigWindow.IsOpen = true;
     }
 }
