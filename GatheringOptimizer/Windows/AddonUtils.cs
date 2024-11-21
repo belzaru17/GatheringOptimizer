@@ -34,6 +34,6 @@ internal static class AddonUtils
 
     public static bool IsBotanist()
     {
-        return Plugin.ClientState.LocalPlayer?.ClassJob.Id == 17;
+        return Plugin.ClientState.LocalPlayer?.ClassJob.RowId == 17;
     }
 }
