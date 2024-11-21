@@ -2,7 +2,7 @@
   "Author": "HappySprite",
   "Name": "GatheringOptimizer",
   "InternalName": "gatheringOptimizer",
-  "AssemblyVersion": "0.6.5",
+  "AssemblyVersion": "0.7.0",
   "Punchline": "Optimize retainer gatherings.",
   "Description": "Use /go to open UI.",
   "ApplicableVersion": "any",
