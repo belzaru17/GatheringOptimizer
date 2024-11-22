@@ -67,6 +67,7 @@ jobs:
           $path = './repo.json'
           $content = get-content -path $path
           $content = $content -replace '"AssemblyVersion": "[0-9.]*"',('"AssemblyVersion": "' + $ver + '"')
+          $content = $content -replace '/download/[0-9.]*/',('/download/' + $ver + '/')
           set-content -Path $path -Value $content
 
       - name: Commit repo.json

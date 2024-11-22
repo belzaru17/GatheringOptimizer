@@ -11,11 +11,11 @@
       "gathering",
       "optimizer"
   ],
-  "DalamudApiLevel": 10,
+  "DalamudApiLevel": 11,
   "LoadPriority": 0,
   "IconUrl": "https://raw.githubusercontent.com/belzaru17/GatheringOptimizer/master/Images/icon.png",
   "DownloadCount": 0,
-  "DownloadLinkInstall": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.6.4/GatheringOptimizer.zip",
-  "DownloadLinkTesting": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.6.4/GatheringOptimizer.zip",
-  "DownloadLinkUpdate": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.6.4/GatheringOptimizer.zip"
+  "DownloadLinkInstall": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.7.0/GatheringOptimizer.zip",
+  "DownloadLinkTesting": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.7.0/GatheringOptimizer.zip",
+  "DownloadLinkUpdate": "https://github.com/belzaru17/GatheringOptimizer/releases/download/0.7.0/GatheringOptimizer.zip"
 }]
