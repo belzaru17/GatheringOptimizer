@@ -183,7 +183,7 @@ internal class CollectablesPane : IPane
         return true;
     }
 
-    public void OnActionUsed(int actionId)
+    public void OnActionUsed(uint actionId)
     {
         if (actionId == (AddonUtils.IsBotanist()? nextAction?.ActionId_BOTANIST : nextAction?.ActionId_MINER)) advanceToNextStep = true;
     }

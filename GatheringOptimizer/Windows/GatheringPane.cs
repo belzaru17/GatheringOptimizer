@@ -208,7 +208,7 @@ internal class GatheringPane : IPane
         return addon == null || !addon->IsVisible;
     }
 
-    public void OnActionUsed(int actionId)
+    public void OnActionUsed(uint actionId)
     {
         Plugin.Log.Information($"OnActionUsed({actionId})");
         if (bestResult != null && actionIndex < bestResult.Actions.Length)

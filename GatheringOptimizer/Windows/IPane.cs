@@ -14,6 +14,6 @@ internal interface IPane
     bool ShouldAutoOpen();
     bool ShouldAutoClose();
 
-    void OnActionUsed(int actionId);
+    void OnActionUsed(uint actionId);
     void OnActorControl(uint type);
 }

@@ -4,17 +4,19 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Hooking;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using System;
 using System.Collections.Immutable;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using static FFXIVClientStructs.FFXIV.Client.Game.Character.ActionEffectHandler;
 
 namespace GatheringOptimizer.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    public MainWindow(Plugin plugin) : base(
+    public unsafe MainWindow(Plugin plugin) : base(
         "Gathering Optimizer", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoResize)
     {
         this.plugin = plugin;
@@ -40,14 +42,22 @@ public class MainWindow : Window, IDisposable
 
         try
         {
-            _onActionUsedHook = Plugin.GameInteropProvider.HookFromSignature<OnActionUsedDelegate>(
-                "40 ?? 56 57 41 ?? 41 ?? 41 ?? 48 ?? ?? ?? ?? ?? ?? ?? 48",
+            _onActionUsedHook = Plugin.GameInteropProvider.HookFromAddress<ActionEffectHandler.Delegates.Receive>(
+                ActionEffectHandler.MemberFunctionPointers.Receive,
                 OnActionUsed
             );
+            if (_onActionUsedHook == null)
+            {
+                Plugin.Log.Error("Failed to hook into actions used");
+            }
             _onActorControlHook = Plugin.GameInteropProvider.HookFromSignature<OnActorControlDelegate>(
                 "E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64",
                 OnActorControl
             );
+            if (_onActorControlHook == null)
+            {
+                Plugin.Log.Error("Failed to hook into actor control");
+            }
         }
         catch (Exception e)
         {
@@ -135,14 +145,14 @@ public class MainWindow : Window, IDisposable
         }
     }
 
-    private void OnActionUsed(uint sourceId, IntPtr sourceCharacter, IntPtr pos, IntPtr effectHeader, IntPtr effectArray, IntPtr effectTrail)
+    private unsafe void OnActionUsed(uint actorId, Character* casterPtr, Vector3* targetPos, Header* header, TargetEffects* effects, GameObjectId* targetEntityIds)
     {
-        _onActionUsedHook?.Original(sourceId, sourceCharacter, pos, effectHeader, effectArray, effectTrail);
+        _onActionUsedHook?.Original(actorId, casterPtr, targetPos, header, effects, targetEntityIds);
 
         IPlayerCharacter? player = Plugin.ClientState.LocalPlayer;
-        if (player == null || sourceId != player.GameObjectId) { return; }
+        if (player == null || actorId != player.GameObjectId) { return; }
 
-        int actionId = Marshal.ReadInt32(effectHeader, 0x8);
+        uint actionId = header->ActionId;
         if (actionId != 0)
         {
             currentPane.OnActionUsed(actionId);
@@ -164,8 +174,7 @@ public class MainWindow : Window, IDisposable
     private readonly ISharedImmediateTexture settingsIcon;
     private readonly ImmutableArray<IPane> panes;
 
-    private delegate void OnActionUsedDelegate(uint sourceId, IntPtr sourceCharacter, IntPtr pos, IntPtr effectHeader, IntPtr effectArray, IntPtr effectTrail);
-    private Hook<OnActionUsedDelegate>? _onActionUsedHook;
+    private Hook<ActionEffectHandler.Delegates.Receive>? _onActionUsedHook;
     private delegate void OnActorControlDelegate(uint entityId, uint type, uint buffID, uint direct, uint actionId, uint sourceId, uint arg4, uint arg5, ulong targetId, byte a10);
     private Hook<OnActorControlDelegate>? _onActorControlHook;
 
