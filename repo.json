@@ -11,7 +11,7 @@
       "gathering",
       "optimizer"
   ],
-  "DalamudApiLevel": 11,
+  "DalamudApiLevel": 12,
   "LoadPriority": 0,
   "IconUrl": "https://raw.githubusercontent.com/belzaru17/GatheringOptimizer/master/Images/icon.png",
   "DownloadCount": 0,
