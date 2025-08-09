@@ -1,9 +1,9 @@
-﻿using Dalamud.Game.Addon.Lifecycle;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Textures;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using GatheringOptimizer.Algorithm.Collectables;
-using ImGuiNET;
 using System;
 using System.Numerics;
 
@@ -51,14 +51,14 @@ internal class CollectablesPane : IPane
 
         if (collecting) ImGui.BeginDisabled();
         ImGui.SetNextItemWidth(100);
-        ImGui.InputInt("GP", ref currentGP);
+        ImGui.InputInt("GP", ref currentGP, 1, 10);
         ImGui.SetNextItemWidth(100);
-        ImGui.InputInt("##CurrentIntegrity", ref currentIntegrity);
+        ImGui.InputInt("##CurrentIntegrity", ref currentIntegrity, 1);
         ImGui.SameLine(); ImGui.Text("/"); ImGui.SameLine();
         ImGui.SetNextItemWidth(100);
-        ImGui.InputInt("Integrity", ref maxIntegrity);
+        ImGui.InputInt("Integrity", ref maxIntegrity, 1);
         ImGui.SetNextItemWidth(100);
-        ImGui.InputInt("Collectability", ref currentCollectability);
+        ImGui.InputInt("Collectability", ref currentCollectability, 1);
 
         string[] buffValues = ["None", "Collector's Standard", "Collector's High Standard"];
         int newCurrentBuff = (currentBuff == null) ? 0 : ((currentBuff == CollectableBuffs.CollectorsStandard) ? 1 : 2);
@@ -106,7 +106,7 @@ internal class CollectablesPane : IPane
         }
 
         ImGui.SetNextItemWidth(100);
-        ImGui.InputInt("Step", ref currentStep);
+        ImGui.InputInt("Step", ref currentStep, 1);
         ImGui.Spacing();
         if (collecting) ImGui.EndDisabled();
 
@@ -114,9 +114,9 @@ internal class CollectablesPane : IPane
         ImGui.SetCursorPos(new Vector2(region.X / 2 - 24, region.Y/2 - 24));
         if (collecting)
         {
-            ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48));
+            ImGui.Image(icon.GetWrapOrEmpty().Handle, new Vector2(48, 48));
         }
-        else if (ImGui.ImageButton(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48)))
+        else if (ImGui.ImageButton(icon.GetWrapOrEmpty().Handle, new Vector2(48, 48)))
         {
             if (nextAction != null)
             {
@@ -178,7 +178,7 @@ internal class CollectablesPane : IPane
             }
         }
 
-        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon);
+        UpdateFromCurrentState((AddonGatheringMasterpiece*)args.Addon.Address);
 
         return true;
     }
@@ -212,7 +212,7 @@ internal class CollectablesPane : IPane
 
     private unsafe AddonGatheringMasterpiece* GetAddon()
     {
-        return (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName);
+        return (AddonGatheringMasterpiece*)Plugin.GameGui.GetAddonByName(AddonName).Address;
     }
 
     private unsafe void UpdateFromCurrentState(AddonGatheringMasterpiece* addon)

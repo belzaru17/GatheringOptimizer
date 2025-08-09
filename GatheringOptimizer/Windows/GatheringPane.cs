@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.Addon.Lifecycle;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Textures;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -6,7 +7,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using GatheringOptimizer.Algorithm.Gathering;
-using ImGuiNET;
 using System;
 using System.Numerics;
 
@@ -37,26 +37,26 @@ internal class GatheringPane : IPane
         bool changed = false;
 
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("##CurrentGP", ref currentGP);
+        changed |= ImGui.InputInt("##CurrentGP", ref currentGP, 1);
         ImGui.SameLine(); ImGui.Text("/"); ImGui.SameLine();
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("GP##MaxGP", ref maxGP);
+        changed |= ImGui.InputInt("GP##MaxGP", ref maxGP, 1);
         if (currentGP > maxGP)
         {
             currentGP = maxGP;
         }
 
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Integrity", ref integrity);
+        changed |= ImGui.InputInt("Integrity", ref integrity, 1);
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Gathering Chance", ref gatheringChance);
+        changed |= ImGui.InputInt("Gathering Chance", ref gatheringChance, 1);
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Gatherer's Boon Chance", ref gatherersBoonChance);
+        changed |= ImGui.InputInt("Gatherer's Boon Chance", ref gatherersBoonChance, 1);
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Yield (#items)", ref yield);
+        changed |= ImGui.InputInt("Yield (#items)", ref yield, 1);
         ImGui.Spacing();
         ImGui.SetNextItemWidth(100);
-        changed |= ImGui.InputInt("Bountiful Yield (# items) [manual]", ref bountifulYieldItems);
+        changed |= ImGui.InputInt("Bountiful Yield (# items) [manual]", ref bountifulYieldItems, 1);
         ImGui.Spacing();
         ImGui.Separator();
 
@@ -116,7 +116,7 @@ internal class GatheringPane : IPane
 
         try
         {
-            var addon = (AddonGathering*)args.Addon;
+            var addon = (AddonGathering*)args.Addon.Address;
             if (addon == null) return false;
 
             if (addon->IntegrityTotal == null) return false;
@@ -233,7 +233,7 @@ internal class GatheringPane : IPane
 
     private unsafe AddonGathering* GetAddon()
     {
-        return (AddonGathering*)Plugin.GameGui.GetAddonByName(AddonName);
+        return (AddonGathering*)Plugin.GameGui.GetAddonByName(AddonName).Address;
     }
 
     private enum BestResultSelector
@@ -301,7 +301,7 @@ internal class GatheringPane : IPane
                 var width = ImGui.GetWindowWidth();
                 ImGui.SetCursorPosX((width - 48) / 2);
                 var actionIcon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(actionIconId));
-                ImGui.Image(actionIcon.GetWrapOrEmpty().ImGuiHandle, new Vector2(48, 48));
+                ImGui.Image(actionIcon.GetWrapOrEmpty().Handle, new Vector2(48, 48));
                 ImGui.SetCursorPosX((width - ImGui.CalcTextSize(actionName).X) / 2);
                 ImGui.Text(actionName);
             }
@@ -337,7 +337,7 @@ internal class GatheringPane : IPane
                     actionName = action.Name_MINER;
                 }
                 var icon = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(actionIconId));
-                ImGui.Image(icon.GetWrapOrEmpty().ImGuiHandle, new Vector2(24, 24));
+                ImGui.Image(icon.GetWrapOrEmpty().Handle, new Vector2(24, 24));
                 ImGui.SameLine();
                 if (i < actionIndex) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.3f, 0.3f, 0.3f, 1));
                 else if (i == actionIndex && !eureka) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 1f, 1));

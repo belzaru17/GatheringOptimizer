@@ -1,3 +1,4 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -6,7 +7,6 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using ImGuiNET;
 using System;
 using System.Collections.Immutable;
 using System.Numerics;
@@ -113,7 +113,7 @@ public class MainWindow : Window, IDisposable
             ImGui.SameLine();
         }
         ImGui.SetCursorPosX(ImGui.GetWindowSize().X - 30);
-        if (ImGui.ImageButton(settingsIcon.GetWrapOrEmpty().ImGuiHandle, new(17, 17)))
+        if (ImGui.ImageButton(settingsIcon.GetWrapOrEmpty().Handle, new(17, 17)))
         {
             plugin.OpenConfigUI();
         }

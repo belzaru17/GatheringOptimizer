@@ -1,6 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using GatheringOptimizer.Algorithm.Collectables;
-using ImGuiNET;
 using System;
 using System.Numerics;
 
@@ -85,7 +85,7 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.TableNextColumn();
                 int minGP = rotationConfig.MinGP;
                 ImGui.SetNextItemWidth(65);
-                changed |= ImGui.InputInt($"##MinGP_{rotation.Id}", ref minGP, 0, 0);
+                changed |= ImGui.InputInt($"##MinGP_{rotation.Id}", ref minGP);
                 if (rotation.MinGP == 0) ImGui.EndDisabled();
                 ImGui.TableNextColumn();
                 bool noExtraGP = rotationConfig.NoExtraGP;
